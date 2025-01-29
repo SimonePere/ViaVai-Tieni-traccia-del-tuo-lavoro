@@ -15,13 +15,15 @@ const clienteSchema = new mongoose.Schema({
     unique: true
   },
   telefono: {
-    type: String
+    type: String,
+    required: false,
   },
   indirizzo: {
     via: String,
     citta: String,
     cap: String,
     provincia: String
+
   },
   dataRegistrazione: {
     type: Date,
