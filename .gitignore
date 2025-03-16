@@ -1,0 +1,55 @@
+# Environment variables
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Logs
+logs/
+*.log
+
+# Build output
+dist/
+build/
+out/
+
+# Cache directories
+.cache/
+.temp/
+.npm/
+
+# IDE e editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# Coverage e test
+coverage/
+.nyc_output/
+junit.xml
+
+# Upload e file temporanei
+uploads/
+temp/
+tmp/
