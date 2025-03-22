@@ -4,7 +4,7 @@ import Utente from "../models/utenteSchema.js";
 // Ottiene tutti gli utenti
 export const getUtenti = async (req, res) => {
   try {
-    const utenti = await Utente.find({}, 'nome cognome _id dataRegistrazione email telefono _id'); // Restituisce solo nome, cognome e ID e non manda dati sensibili, come password ecc
+    const utenti = await Utente.find({}, 'nome cognome _id dataRegistrazione email telefono _id utente_citta '); // Restituisce solo nome, cognome e ID e non manda dati sensibili, come password ecc
     // const utenti = await Utente.find({}); // Restituisce TUTTO
     console.log(utenti);
     res.status(200).json(utenti);

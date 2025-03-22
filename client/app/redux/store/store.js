@@ -31,6 +31,7 @@ import usersReducer from "../slices/usersSlice"
 import authReducer from "../slices/authSlice"
 import registerReducer from "../slices/registerSlice"
 import trasportiReducer from "../slices/trasportiSlice"
+import loadingReducer from "../slices/loadingSlice"
  
 
 // Configura lo store
@@ -40,6 +41,7 @@ const store = configureStore({
         auth: authReducer, // Aggiungi il reducer degli utenti alla configurazione dello store
         register: registerReducer,
         trasporti: trasportiReducer,
+        loading: loadingReducer,
     },
 })
 

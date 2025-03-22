@@ -26,12 +26,7 @@ const RegisterForm = () => {
     password: "",
     confermaPassword: "",
     telefono: "",
-    indirizzo: {
-      via: "",
-      citta: "",
-      cap: "",
-      provincia: "",
-    },
+    utente_citta:"",
   });
   const [showPop, setShowPop] = useState(false); // Stato per gestire la visualizzazione del Pop
   const [popMessage, setPopMessage] = useState(""); // Messaggio da passare al Pop
@@ -71,10 +66,20 @@ const RegisterForm = () => {
     // Controlla se ci sono errori prima di inviare i dati
     if (Object.keys(newErrors).length === 0) {
       console.log("Form valido, dati:", formData); // Log dei dati del modulo se non ci sono errori
+      console.log("Valore di utente_citta:", formData.utente_citta);
       try {
         dispatch(registerStart());
         const url = `${LOCAL_HOST}/auth/register`;
         // console.log("URL di richiesta:", url); // Log dell'URL di richiesta
+        console.log("Corpo della richiesta:", {
+            nome: formData.nome,
+            cognome: formData.cognome,
+            email: formData.email,
+            password: formData.password,
+            confermaPassword: formData.confermaPassword,
+            telefono: formData.telefono,
+            citta: formData.utente_citta, // Assicurati che questo campo sia corretto
+        });
         const response = await fetch(url, {
           method: "POST",
           headers: {
@@ -87,12 +92,7 @@ const RegisterForm = () => {
             password: formData.password,
             confermaPassword: formData.confermaPassword,
             telefono: formData.telefono,
-            indirizzo: {
-              via: formData.indirizzo.via,
-              citta: formData.indirizzo.citta,
-              cap: formData.indirizzo.cap,
-              provincia: formData.indirizzo.provincia,
-            },
+            citta: formData.utente_citta,
           }),
         });
 
@@ -136,9 +136,7 @@ const RegisterForm = () => {
 
   return (
     <Card className="max-w-2xl  mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        Registrazione
-      </h2>
+      
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         {/* Dati personali */}
         <div className="grid md:grid-cols-2 gap-4">
@@ -261,28 +259,15 @@ const RegisterForm = () => {
           </div>
         </div>
 
+
+       
         {/* Indirizzo */}
         <div className="mt-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Indirizzo
           </h3>
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="via" value="Via" />
-              </div>
-              <TextInput
-                id="via"
-                type="text"
-                value={formData.indirizzo.via}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    indirizzo: { ...formData.indirizzo, via: e.target.value },
-                  })
-                }
-              />
-            </div>
+            
             <div>
               <div className="mb-2 block">
                 <Label htmlFor="citta" value="Città" />
@@ -290,50 +275,14 @@ const RegisterForm = () => {
               <TextInput
                 id="citta"
                 type="text"
-                value={formData.indirizzo.citta}
+                value={formData.utente_citta}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    indirizzo: { ...formData.indirizzo, citta: e.target.value },
-                  })
+                  setFormData({ ...formData, utente_citta: e.target.value })
                 }
               />
             </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="cap" value="CAP" />
-              </div>
-              <TextInput
-                id="cap"
-                type="text"
-                value={formData.indirizzo.cap}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    indirizzo: { ...formData.indirizzo, cap: e.target.value },
-                  })
-                }
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="provincia" value="Provincia" />
-              </div>
-              <TextInput
-                id="provincia"
-                type="text"
-                value={formData.indirizzo.provincia}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    indirizzo: {
-                      ...formData.indirizzo,
-                      provincia: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
+            
+            
           </div>
         </div>
 

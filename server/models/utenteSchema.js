@@ -6,7 +6,6 @@ const utenteSchema = new mongoose.Schema({
   nome: {
     type: String,
     required: true,
-    unique: true,
   },
   cognome: {
     type: String,
@@ -23,16 +22,7 @@ const utenteSchema = new mongoose.Schema({
   telefono: {
     type: String,
   },
-  indirizzo_via: {
-    type: String,
-  },
-  indirizzo_citta: {
-    type: String,
-  },
-  indirizzo_cap: {
-    type: String,
-  },
-  indirizzo_provincia: {
+  utente_citta:{
     type: String,
   },
   dataRegistrazione: {

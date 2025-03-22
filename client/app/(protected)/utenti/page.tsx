@@ -13,7 +13,13 @@ import { HiPlus } from "react-icons/hi";
 import EditForm from "@/app/components/ui/EditForm"; // Assicurati di avere react-icons installato
 import { TrasportoInterface } from "@/app/types/trasporto";
 import { Utente } from "@/app/types/utente";
-import { fetchUtenti, createUtente, updateUtente, deleteUtente } from "@/app/hooks/services/utentiServices"; // Importa le nuove funzioni
+import {
+  fetchUtenti,
+  createUtente,
+  updateUtente,
+  deleteUtente,
+} from "@/app/hooks/services/utentiServices"; // Importa le nuove funzioni
+import CreateForm from "@/app/components/ui/CreateForm";
 
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
@@ -23,14 +29,17 @@ interface UsersListProps {
   utenti?: Utente[]; // Rendi le props opzionali
 }
 
-
-const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) => {
+const UtentiPage: React.FC<UsersListProps> = ({
+  trasporti = [],
+  utenti = [],
+}) => {
   const [editFormState, setEditFormState] = useState<
     Utente | TrasportoInterface | null
   >(null);
-  
+  const [createFormState, setCreateFormState] = useState<boolean>(false); // Stato per gestire il CreateForm
+
   // Inizializza come array vuoto
-  const [formType, setFormType] = useState<"utente" | "trasporto">("trasporto");
+  const [formType, setFormType] = useState<"utente" | "trasporto">("utente");
   // Aggiungi stati per il Pop
   const [showPop, setShowPop] = useState(false);
   const [popConfig, setPopConfig] = useState({
@@ -42,11 +51,10 @@ const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) =
   const { access_token } = useSelector((state: any) => state.auth); // Recupera il token da Redux
   const { users } = useSelector((state: any) => state.users); // Stato degli utenti
 
-   // Modifica l'useEffect per gestire 
-   useEffect(() => {
-    if (users) {
-      setEditFormState(users);
-      setFormType("utente");
+  useEffect(() => {
+    if (users.length > 0) {
+      console.log("Utenti caricati, ma non imposto il form automaticamente.");
+      console.log("useEffect attivato, users:", users);
     }
   }, [users]);
 
@@ -56,6 +64,8 @@ const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) =
   ) => {
     console.log("Modifica cliccata per:", data);
     setEditFormState(data);
+    console.log("Stato aggiornato di editFormState:", editFormState);
+
     setFormType(type);
   };
 
@@ -101,52 +111,23 @@ const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) =
     }
   };
 
- 
-
-
-
   const handleNewUtente = () => {
-    const nuovoUtente: Partial<Utente> = {
-      nome: "",
-      cognome: "",
-      email: "",
-      telefono: "",
-      indirizzo_via: "",
-      indirizzo_citta: "",
-      indirizzo_cap: "",
-      indirizzo_provincia: "",
-      _id: undefined, // Non necessario per un nuovo utente
-      dataRegistrazione: new Date(), // Inizializza come data corrente
-    };
-    setEditFormState(nuovoUtente as Utente);
-    setFormType("utente");
+    setCreateFormState(true); // Mostra il CreateForm
+    setFormType("utente"); // Imposta il tipo di form
   };
 
   const handleSave = async (updatedData: Utente | TrasportoInterface) => {
     try {
-      let risultato;
-      const isNewUtente = !(updatedData as any)._id;
-
-      if (isNewUtente) {
-        risultato = await createUtente(updatedData as Utente, access_token); // Usa la funzione di create
-      } else {
-        risultato = await updateUtente((updatedData as any)._id, updatedData as Utente, access_token); // Usa la funzione di update
-      }
-
-      console.log(isNewUtente ? "Nuovo utente aggiunto con successo:" : "Utente aggiornato con successo:", risultato);
+      const risultato = await createUtente(updatedData as Utente, access_token); // Usa la funzione di create
+      console.log("Nuovo utente aggiunto con successo:", risultato);
 
       // Chiudi il form e resetta lo stato
-      setEditFormState(null);
-      setFormType("utente");
+      setCreateFormState(false);
+      await fetchUsers(); // Ricarica gli utenti
 
-      // Ricarica gli utenti
-      await fetchUsers();
-
-      // Mostra Pop di successo con messaggio appropriato
+      // Mostra Pop di successo
       setPopConfig({
-        message: isNewUtente
-          ? "Nuovo utente aggiunto con successo!"
-          : "Utente modificato con successo!",
+        message: "Nuovo utente aggiunto con successo!",
         icon: <HiCheck className="h-5 w-5 text-green-500" />,
         color: "green-500",
       });
@@ -159,9 +140,7 @@ const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) =
     } catch (errore) {
       console.error("Errore durante il salvataggio:", errore);
       setPopConfig({
-        message: (updatedData as any)._id
-          ? "Errore durante il salvataggio delle modifiche"
-          : "Errore durante l'aggiunta dell'utente",
+        message: "Errore durante l'aggiunta dell'utente",
         icon: <HiX className="h-5 w-5 text-red-500" />,
         color: "red-500",
       });
@@ -177,7 +156,14 @@ const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) =
   const handleClose = () => {
     console.log("EditForm chiuso senza salvare.");
     setEditFormState(null);
-    setFormType("utente"); // Reset a un valore predefinito
+    setTimeout(() => {
+      setEditFormState(null); // Forza un reset più sicuro
+    }, 100);
+    setFormType("utente");
+  };
+
+  const handleCloseCreateForm = () => {
+    setCreateFormState(false); // Chiudi il CreateForm
   };
 
   useEffect(() => {
@@ -216,6 +202,14 @@ const UtentiPage: React.FC<UsersListProps> = ({ trasporti = [], utenti = [] }) =
           type={formType} // Passa il tipo di form
         />
       )}
+      {createFormState && (
+        <CreateForm
+          onSave={handleSave} // Passa la funzione di salvataggio
+          onClose={handleCloseCreateForm} // Passa la funzione di chiusura
+          type={formType} // Passa il tipo di form
+        />
+      )}
+
       <div className="fixed bottom-6 right-6">
         <Button
           gradientDuoTone="greenToBlue"

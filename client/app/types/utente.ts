@@ -8,10 +8,7 @@
     cognome: string;
     email: string;
     telefono?: string;
-    indirizzo_via?: string;
-    indirizzo_citta?: string;
-    indirizzo_cap?: string;
-    indirizzo_provincia?: string;
+    utente_citta: string,
     dataRegistrazione: Date;
     immagineProfilo?:string
     

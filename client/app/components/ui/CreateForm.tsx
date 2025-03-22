@@ -1,31 +1,18 @@
 "use client";
 
 import { Button, Label, Modal, TextInput, Select } from "flowbite-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Utente } from "../../types/utente";
 import { TrasportoInterface } from "../../types/trasporto";
 
-interface EditFormProps<T> {
-  data: T;
+interface CreateFormProps<T> {
   onSave: (data: T) => Promise<void>;
   onClose: () => void;
   type: "utente" | "trasporto";
 }
 
-const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
-  console.log("Dati ricevuti in EditForm:", data);
-  const [openModal, setOpenModal] = useState(true);
-  const [formData, setFormData] = useState<T>(data);
-
-  useEffect(() => {
-    console.log("Dati ricevuti nel form di modifica:", data);
-    setFormData(data);
-  }, [data]);
-
-  function handleCloseModal() {
-    setOpenModal(false);
-    onClose();
-  }
+const CreateForm = <T,>({ onSave, onClose, type }: CreateFormProps<T>) => {
+  const [formData, setFormData] = useState<T>({} as T); // Inizializza formData come oggetto vuoto
 
   function handleChange(
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -38,18 +25,17 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
   }
 
   async function handleSubmit() {
-    const updatedData = { ...formData, _id: (formData as TrasportoInterface)._id }; // Usa l'asserzione di tipo
-    await onSave(updatedData);
-    handleCloseModal();
+    await onSave(formData); // Salva i dati
+    onClose(); // Chiudi il modulo
   }
 
   return (
-    <Modal show={openModal} size="md" onClose={handleCloseModal} popup>
+    <Modal show={true} size="md" onClose={onClose} popup>
       <Modal.Header />
       <Modal.Body>
         <div className="space-y-6">
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-            Modifica {type === "utente" ? "Utente" : "Trasporto"}
+            Crea {type === "utente" ? "Utente" : "Trasporto"}
           </h3>
           {type === "utente" && (
             <>
@@ -58,7 +44,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <TextInput
                   id="nome"
                   name="nome"
-                  value={(formData as Utente).nome || ""}
                   onChange={handleChange}
                   required
                 />
@@ -68,7 +53,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <TextInput
                   id="cognome"
                   name="cognome"
-                  value={(formData as Utente).cognome || ""}
                   onChange={handleChange}
                 />
               </div>
@@ -77,7 +61,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <TextInput
                   id="email"
                   name="email"
-                  value={(formData as Utente).email || ""}
                   onChange={handleChange}
                   required
                 />
@@ -87,17 +70,36 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <TextInput
                   id="telefono"
                   name="telefono"
-                  value={(formData as Utente).telefono || ""}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <Label htmlFor="indirizzo" value="Indirizzo" />
+                <Label htmlFor="citta" value="Citta" />
                 <TextInput
-                  id="indirizzo"
-                  name="indirizzo"
-                  value={(formData as Utente).utente_citta || ""}
+                  id="citta"
+                  name="citta"
                   onChange={handleChange}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="password" value="Password*" />
+                <TextInput
+                  id="password"
+                  name="password"
+                  type="password"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="conferma_password" value="Conferma Password*" />
+                <TextInput
+                  id="conferma_password"
+                  name="conferma_password"
+                  type="password"
+                  onChange={handleChange}
+                  required
                 />
               </div>
             </>
@@ -109,7 +111,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <Select
                   id="tipo_lavoro"
                   name="tipo_lavoro"
-                  value={(formData as TrasportoInterface).tipo_lavoro || ""}
                   onChange={handleChange}
                   required
                 >
@@ -128,9 +129,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <TextInput
                   id="descrizione_lavoro"
                   name="descrizione_lavoro"
-                  value={
-                    (formData as TrasportoInterface).descrizione_lavoro || ""
-                  }
                   onChange={handleChange}
                   required
                 />
@@ -141,7 +139,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <TextInput
                   id="destinazione"
                   name="destinazione"
-                  value={(formData as TrasportoInterface).destinazione || ""}
                   onChange={handleChange}
                   required
                 />
@@ -152,7 +149,6 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
                 <Select
                   id="tipo_giornata"
                   name="tipo_giornata"
-                  value={(formData as TrasportoInterface).tipo_giornata || ""}
                   onChange={handleChange}
                   required
                 >
@@ -163,32 +159,29 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
               </div>
 
               <div>
-                <Label htmlFor="ore_lavoro" value="Ore lavoro" />
+                <Label htmlFor="ore_lavoro" value="Ore lavoro*" />
                 <TextInput
                   id="ore_lavoro"
                   name="ore_lavoro"
                   type="number"
-                  value={(formData as TrasportoInterface).ore_lavoro || ""}
                   onChange={handleChange}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="importo" value="Importo" />
+                <Label htmlFor="importo" value="Importo*" />
                 <TextInput
                   id="importo"
                   name="importo"
                   type="number"
-                  value={(formData as TrasportoInterface).importo || ""}
                   onChange={handleChange}
                   required
                 />
               </div>
-
             </>
           )}
           <div className="w-full">
-            <Button onClick={handleSubmit}>Salva modifiche</Button>
+            <Button onClick={handleSubmit}>Crea</Button>
           </div>
         </div>
       </Modal.Body>
@@ -196,4 +189,4 @@ const EditForm = <T,>({ data, onSave, onClose, type }: EditFormProps<T>) => {
   );
 };
 
-export default EditForm;
+export default CreateForm;

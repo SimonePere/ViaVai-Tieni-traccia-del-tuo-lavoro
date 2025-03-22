@@ -1,7 +1,10 @@
 "use client";
 
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect } from "react";
 import Link from "next/link";
+import LoadingIcon from "../ui/LoadingIcon";
+import { usePathname } from "next/navigation"; // App Router
+import useLoading from "../../hooks/useLoading";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,15 +12,26 @@ interface SidebarProps {
 }
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSidebar }, ref) => {
+  const { isLoading, startLoading, stopLoading } = useLoading();
+  const pathname = usePathname(); // Nuovo modo di gestire il cambio pagina
+
+
+  useEffect(() => {
+    startLoading();
+    const timeout = setTimeout(() => stopLoading(), 500); // Simula caricamento
+    return () => clearTimeout(timeout);
+  }, [pathname]);
+
   return (
     <aside
-      ref={ref} // Aggiungi il ref qui
+      ref={ref}
       className={`bg-gray-800 fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform border-r border-gray-700 dark:bg-gray-800 dark:border-gray-700 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
-      }`} // Usa isOpen per determinare la visibilità
+      }`}
       aria-label="Sidebar"
       id="drawer-navigation"
     >
+      {isLoading && <LoadingIcon />}
       <div className="overflow-y-auto py-5 px-3 h-full dark:bg-gray-800">
         <form action="#" method="GET" className="md:hidden mb-2">
           <label htmlFor="sidebar-search" className="sr-only">
@@ -52,6 +66,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
             <Link
               href="/trasporti"
               className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+              onClick={startLoading}
             >
               <svg
                 className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -69,6 +84,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
             <Link
               href="/utenti"
               className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+              onClick={startLoading}
             >
               <svg
                 className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -86,6 +102,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
             <Link
               href="/login"
               className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+              onClick={startLoading}
             >
               <svg
                 className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -103,6 +120,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
             <Link
               href="/register"
               className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+              onClick={startLoading}
             >
               <svg
                 className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -120,6 +138,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
             <Link
               href="/logout"
               className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+              onClick={startLoading}
             >
               <svg
                 className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
