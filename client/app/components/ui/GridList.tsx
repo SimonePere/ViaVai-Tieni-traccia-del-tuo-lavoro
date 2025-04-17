@@ -11,11 +11,15 @@ import {
 import { useState, useEffect } from "react";
 import EditForm from "./EditForm";
 import Pop from "./Pop";
-import { HiCheck, HiX, HiPlus } from "react-icons/hi";
+import { HiCheck, HiX, HiPlus, HiPencil, HiTrash } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { TrasportoInterface } from "../../types/trasporto";
 import { Utente } from "../../types/utente";
-import { createTrasporto, isTrasporto, updateTrasporto } from "@/app/hooks/services/trasportiServices";
+import {
+  createTrasporto,
+  isTrasporto,
+  updateTrasporto,
+} from "@/app/hooks/services/trasportiServices";
 
 // Definizione del tipo generico per supportare sia TrasportoInterface che Utente
 type DataType = TrasportoInterface | Utente;
@@ -67,7 +71,10 @@ const GridList = <T extends DataType>({
         await updateTrasporto(updatedData._id, updatedData, access_token);
       } else {
         // Altrimenti, chiama la funzione di creazione
-        await createTrasporto(updatedData as unknown as TrasportoInterface, access_token);
+        await createTrasporto(
+          updatedData as unknown as TrasportoInterface,
+          access_token
+        );
       }
       fetchData(); // Ricarica i dati
       setPopConfig({
@@ -95,7 +102,9 @@ const GridList = <T extends DataType>({
         // Se l'oggetto è di tipo TrasportoInterface, chiama la funzione di eliminazione
         await onDelete(data);
       } else {
-        console.error("Tentativo di eliminare un utente, operazione non supportata.");
+        console.error(
+          "Tentativo di eliminare un utente, operazione non supportata."
+        );
         // Gestisci il caso in cui non vuoi eliminare un utente
       }
       fetchData();
@@ -128,13 +137,30 @@ const GridList = <T extends DataType>({
         />
       )}
       <Table hoverable>
+        <caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+          Riepilogo Trasporti
+          <p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
+            {/* Changed description to be dynamic */}
+            {access_token
+              ? dataList.length > 0
+                ? "Di seguito trovi l'elenco dei trasporti registrati."
+                : "Nessun trasporto registrato o trovato per il tuo account."
+              : "Effettua il login per visualizzare lo storico dei trasporti."}
+          </p>
+        </caption>
         <TableHead>
-          <TableHeadCell>Tipo di Lavoro</TableHeadCell>
-          <TableHeadCell>Descrizione Lavoro</TableHeadCell>
-          <TableHeadCell>Destinazione</TableHeadCell>
-          <TableHeadCell>Tipo di Giornata</TableHeadCell>
-          <TableHeadCell>Ore di Lavoro</TableHeadCell>
-          <TableHeadCell>Importo</TableHeadCell>
+          <TableHeadCell className="w-24 md:w-auto">Tipo</TableHeadCell>
+          <TableHeadCell className="w-32 md:w-auto">Descrizione</TableHeadCell>
+          <TableHeadCell className="w-32 md:w-auto">Destinazione</TableHeadCell>
+          <TableHeadCell className="hidden md:table-cell">
+            Giornata
+          </TableHeadCell>
+          <TableHeadCell className="hidden md:table-cell">
+            Ore di Lavoro
+          </TableHeadCell>
+          <TableHeadCell className="hidden md:table-cell">
+            Importo
+          </TableHeadCell>
           <TableHeadCell>
             {/* <span className="sr-only">Modifica</span> */}
           </TableHeadCell>
@@ -145,17 +171,34 @@ const GridList = <T extends DataType>({
         <TableBody>
           {dataList.length > 0 ? (
             dataList.map((data: T, index: number) => (
-              <TableRow key={index} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+              <TableRow
+                key={index}
+                className="bg-white dark:border-gray-700 dark:bg-gray-800"
+              >
                 {isTrasporto(data) ? (
                   <>
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {data.tipo_lavoro}
+                      {/* Mostra il testo completo su schermi md e superiori */}
+                      <span className="hidden md:block">
+                        {data.tipo_lavoro}
+                      </span>
+                      {/* Mostra solo l'iniziale su schermi più piccoli */}
+
+                      <span className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-lg">
+                        {data.tipo_lavoro.charAt(0)}
+                      </span>
                     </TableCell>
                     <TableCell>{data.descrizione_lavoro}</TableCell>
                     <TableCell>{data.destinazione}</TableCell>
-                    <TableCell>{data.tipo_giornata}</TableCell>
-                    <TableCell>{data.ore_lavoro}</TableCell>
-                    <TableCell>{data.importo} €</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {data.tipo_giornata}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {data.ore_lavoro}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {data.importo} €
+                    </TableCell>
                   </>
                 ) : (
                   <TableCell colSpan={6} className="text-center">
@@ -163,14 +206,17 @@ const GridList = <T extends DataType>({
                   </TableCell>
                 )}
                 <TableCell>
-                  <Button onClick={() => handleEditClick(data, "trasporto")}>
-                    Modifica
-                  </Button>
+                  <div onClick={() => handleEditClick(data, "trasporto")}>
+                    <HiPencil className="h-5 w-5 cursor-pointer" />
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => handleDeleteClick(data)} color="red">
-                    Elimina
-                  </Button>
+                  <div
+                    onClick={() => handleDeleteClick(data)}
+                    className="text-red-500"
+                  >
+                    <HiTrash className="h-5 w-5 cursor-pointer" />
+                  </div>
                 </TableCell>
               </TableRow>
             ))

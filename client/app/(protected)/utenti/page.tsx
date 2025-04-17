@@ -20,19 +20,25 @@ import {
   deleteUtente,
 } from "@/app/hooks/services/utentiServices"; // Importa le nuove funzioni
 import CreateForm from "@/app/components/ui/CreateForm";
+import SmallList from "@/app/components/ui/SmallList";
 
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
 
 interface UsersListProps {
-  trasporti?: TrasportoInterface[]; // Rendi le props opzionali
-  utenti?: Utente[]; // Rendi le props opzionali
+  trasporti?: TrasportoInterface[];
+  utenti?: Utente[];
 }
 
 const UtentiPage: React.FC<UsersListProps> = ({
   trasporti = [],
   utenti = [],
 }) => {
+  // Aggiungi qui lo state per il mobile
+  const [isMobile, setIsMobile] = useState(false);
+  // Aggiungi stato per l'utente selezionato da mobile
+  const [selectedUser, setSelectedUser] = useState<Utente | null>(null);
+  
   const [editFormState, setEditFormState] = useState<
     Utente | TrasportoInterface | null
   >(null);
@@ -51,6 +57,18 @@ const UtentiPage: React.FC<UsersListProps> = ({
   const { access_token } = useSelector((state: any) => state.auth); // Recupera il token da Redux
   const { users } = useSelector((state: any) => state.users); // Stato degli utenti
 
+  // Aggiungi qui l'useEffect per il mobile
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 868);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   useEffect(() => {
     if (users.length > 0) {
       console.log("Utenti caricati, ma non imposto il form automaticamente.");
@@ -67,6 +85,16 @@ const UtentiPage: React.FC<UsersListProps> = ({
     console.log("Stato aggiornato di editFormState:", editFormState);
 
     setFormType(type);
+  };
+
+   // Funzione per selezionare un utente dalla lista mobile
+   const handleUserSelect = (user: Utente) => {
+    setSelectedUser(user);
+  };
+
+  // Funzione per chiudere la UserCard da mobile
+  const handleCloseUserCard = () => {
+    setSelectedUser(null);
   };
 
   // Implementa handleDeleteUser
@@ -181,17 +209,50 @@ const UtentiPage: React.FC<UsersListProps> = ({
           color={popConfig.color}
         />
       )}
+
+      {/* Mostra la UserCard dell'utente selezionato su mobile */}
+      {isMobile && selectedUser && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={handleCloseUserCard} // Chiude quando si clicca sullo sfondo
+        >
+          <div 
+            className="relative w-full max-w-md"
+            onClick={(e) => e.stopPropagation()} // Previene la chiusura quando si clicca sulla card
+          >
+            <div className="text-right mb-2">
+              <button 
+                onClick={handleCloseUserCard}
+                className="text-white text-sm px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600"
+              >
+                Chiudi
+              </button>
+            </div>
+            <UserCard
+              user={selectedUser}
+              onDelete={() => selectedUser._id && handleDeleteUser(selectedUser._id)}
+            />
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.length === 0 ? (
           <p>Nessun utente trovato.</p>
         ) : (
-          users.map((user: any) => (
-            <UserCard
-              key={user._id}
-              user={user}
-              onDelete={() => handleDeleteUser(user._id)}
-            />
-          ))
+          isMobile ? (
+            <SmallList 
+            users={users}
+            onUserSelect={handleUserSelect}  
+          />
+          ) : (
+            users.map((user: any) => (
+              <UserCard
+                key={user._id}
+                user={user}
+                onDelete={() => handleDeleteUser(user._id)}
+              />
+            ))
+          )
         )}
       </div>
       {editFormState && (
@@ -211,18 +272,38 @@ const UtentiPage: React.FC<UsersListProps> = ({
       )}
 
       <div className="fixed bottom-6 right-6">
-        <Button
-          gradientDuoTone="greenToBlue"
-          size="lg"
-          pill
-          onClick={handleNewUtente}
-        >
-          <HiPlus className="h-6 w-6 mr-2" />
-          Nuovo Utente
-        </Button>
+        {users.length === 0 ? (
+          <p></p>
+        ) : (
+          <Button
+            gradientDuoTone="greenToBlue"
+            size="lg"
+            pill
+            onClick={handleNewUtente}
+          >
+            <HiPlus className="h-6 w-6 mr-2" />
+            Nuovo Utente
+          </Button>
+        )}
       </div>
     </Dashboard>
   );
 };
 
 export default UtentiPage;
+
+
+// Dopo ogni operazione (create/update/delete) chiami fetchUsers()
+// fetchUsers aggiorna lo stato Redux con dispatch(setUsers(data))
+// Quindi anche se non usi uno slice specifico per l'update, i dati vengono comunque aggiornati
+
+// Ottimizzazione Possibile:
+// Creando uno slice per l'update per evitare
+// di ricaricare tutti gli utenti
+// Aggiornando lo stato Redux localmente
+// invece di fare una nuova chiamata API
+// Riducendo il numero di chiamate al server
+// Ma il tuo approccio attuale funziona
+// perché mantieni la sincronizzazione tra il 
+// frontend e il backend ricaricando sempre
+// i dati freschi dal Server.

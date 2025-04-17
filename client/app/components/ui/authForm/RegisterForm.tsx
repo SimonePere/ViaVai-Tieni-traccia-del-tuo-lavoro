@@ -135,7 +135,7 @@ const RegisterForm = () => {
   };
 
   return (
-    <Card className="max-w-2xl  mx-auto">
+    <Card className="max-w-2xl mx-auto">
       
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         {/* Dati personali */}
@@ -286,7 +286,7 @@ const RegisterForm = () => {
           </div>
         </div>
 
-        <Button type="submit" disabled={isLoading} className="mt-4">
+        <Button type="submit" disabled={isLoading} className="mt-4 font-semibold">
           {isLoading ? "Registrazione in corso" : "Registrati"}
         </Button>
       </form>

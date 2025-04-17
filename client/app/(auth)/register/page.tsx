@@ -8,9 +8,9 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-100 text-gray-900 flex justify-center">
       <div className="max-w-screen-xl m-0 sm:m-10 bg-white shadow sm:rounded-lg flex justify-center flex-1">
         <div className="flex-1 bg-indigo-100 text-center hidden lg:flex">
-          {/* <div className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
+          <div className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
             style={{ backgroundImage: "url('https://storage.googleapis.com/devitary-image-host.appspot.com/15848031292911696601-undraw_designer_life_w96d.svg')" }}>
-          </div> */}
+          </div>
         </div>
         <div className="lg:w-1/2 xl:w-5/12 p-6 sm:p-12">
           <div>
@@ -25,9 +25,7 @@ export default function RegisterPage() {
             <div className="w-full flex-1 mt-8">
               
               <div className="my-12 border-b text-center">
-                <div className="leading-none px-2 inline-block text-sm text-gray-600 tracking-wide font-medium bg-white transform translate-y-1/2">
-                Registrati con e-mail
-                </div>
+                
               </div>
 
               <div className="mx-auto max-w-xs">
@@ -36,7 +34,7 @@ export default function RegisterPage() {
                   <span className="ml-3">Registrati </span>
                 </button> */}
                 <p className="mt-6 text-xs text-gray-600 text-center">
-                  I agree to abide by templatana's
+                  I agree to abide by Simone Pere
                   <a href="#" className="border-b border-gray-500 border-dotted"> Terms of Service </a>
                   and its
                   <a href="#" className="border-b border-gray-500 border-dotted"> Privacy Policy </a>

@@ -9,8 +9,8 @@ import { HiCheck, HiX } from "react-icons/hi";
 import Pop from "./Pop";
 import { TrasportoInterface } from "../../types/trasporto";
 import { setUsers } from "@/app/redux/slices/usersSlice";
-
 import dotenv from "dotenv";
+
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
 
@@ -163,16 +163,9 @@ const UserCard = ({ user, onUserUpdate, onDelete }: UserCardProps) => {
           Telefono: {user.telefono || "Telefono non disponibile"}
         </p>
 
-        {user.indirizzo ? (
+        {user.utente_citta ? (
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            <p>
-              {user.indirizzo.via || "Indirizzo non disponibile"},{" "}
-              {user.indirizzo.citta || "Città non disponibile"}
-            </p>
-            <p>
-              {user.indirizzo.cap || "CAP non disponibile"} -{" "}
-              {user.indirizzo.provincia || "Provincia non disponibile"}
-            </p>
+            <p>{user.utente_citta || "Indirizzo non disponibile"}, </p>
           </div>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">

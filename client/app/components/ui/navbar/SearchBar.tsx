@@ -33,7 +33,7 @@ export default function SearchBar({ isMobile = false }: SearchBarProps) {
       <label htmlFor="topbar-search" className="sr-only">
         Cerca
       </label>
-      <div className="relative md:w-64 md:w-96">
+      <div className="relative md:w-96">
         <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
           <svg
             className="w-5 h-5 text-gray-500 dark:text-gray-400"

@@ -140,9 +140,13 @@ const LoginForm = () => {
           />
           <Label htmlFor="remember">Ricordami</Label>
         </div>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" className="font-semibold" disabled={isLoading}>
           {isLoading ? "Accesso in corso..." : "Accedi"}
         </Button>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Non hai un account? 
+          <Link href="/register" className="font-semibold text-indigo-500 hover:text-indigo-700"> Registrati qui</Link>
+        </p>
       </form>
       {showPop && ( // Renderizza il Pop se showPop è true
         <Pop message={popMessage} icon={popIcon} color={popColor} />

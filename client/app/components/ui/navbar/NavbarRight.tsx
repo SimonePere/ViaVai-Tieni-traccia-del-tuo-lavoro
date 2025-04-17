@@ -12,6 +12,7 @@ export default function NavbarRight() {
       <NotificationsDropdown />
       <AppsDropdown />
       <UserDropdown />
+      
     </div>
   );
 }

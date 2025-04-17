@@ -1,10 +1,14 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
 import Dashboard from "@/app/components/layout/Dashboard";
 import { setTrasporti } from "@/app/redux/slices/trasportiSlice";
 import GridList from "@/app/components/ui/GridList";
-import { fetchTrasporti, createTrasporto, deleteTrasporto } from "@/app/hooks/services/trasportiServices";
+import {
+  fetchTrasporti,
+  createTrasporto,
+  deleteTrasporto,
+} from "@/app/hooks/services/trasportiServices";
 import { Button } from "flowbite-react";
 import { HiCheck, HiPlus, HiX } from "react-icons/hi";
 import CreateForm from "@/app/components/ui/CreateForm";
@@ -12,21 +16,20 @@ import { Utente } from "@/app/types/utente";
 import { TrasportoInterface } from "@/app/types/trasporto";
 import Pop from "@/app/components/ui/Pop";
 
-
 const TrasportiPage: React.FC = () => {
   const dispatch = useDispatch();
   const { access_token } = useSelector((state: any) => state.auth); // Recupera il token da Redux
   const { trasporti } = useSelector((state: any) => state.trasporti); // Stato dei trasporti
   const [createFormState, setCreateFormState] = useState<boolean>(false); // Stato per gestire il CreateForm
- // Inizializza come array vuoto
- const [formType, setFormType] = useState<"utente" | "trasporto">("trasporto");
- // Aggiungi stati per il Pop
- const [showPop, setShowPop] = useState(false);
- const [popConfig, setPopConfig] = useState({
-   message: "",
-   icon: <></>,
-   color: "",
- });
+  // Inizializza come array vuoto
+  const [formType, setFormType] = useState<"utente" | "trasporto">("trasporto");
+  // Aggiungi stati per il Pop
+  const [showPop, setShowPop] = useState(false);
+  const [popConfig, setPopConfig] = useState({
+    message: "",
+    icon: <></>,
+    color: "",
+  });
 
   // Funzione per ottenere i trasporti con fetch
   const fetchData = async () => {
@@ -47,7 +50,10 @@ const TrasportiPage: React.FC = () => {
 
   const handleSave = async (updatedData: Utente | TrasportoInterface) => {
     try {
-      const risultato = await createTrasporto(updatedData as TrasportoInterface, access_token); // Usa la funzione di create
+      const risultato = await createTrasporto(
+        updatedData as TrasportoInterface,
+        access_token
+      ); // Usa la funzione di create
       console.log("Nuovo trasporto aggiunto con successo:", risultato);
 
       // Chiudi il form e resetta lo stato
@@ -81,7 +87,6 @@ const TrasportiPage: React.FC = () => {
       }, 3000);
     }
   };
- 
 
   const handleDelete = async (trasporto: any) => {
     try {
@@ -120,7 +125,6 @@ const TrasportiPage: React.FC = () => {
 
   return (
     <Dashboard>
-      <h1 className="text-2xl font-bold">Gestione Trasporti</h1>
       {showPop && (
         <Pop
           message={popConfig.message}
@@ -128,14 +132,14 @@ const TrasportiPage: React.FC = () => {
           color={popConfig.color}
         />
       )}
-      <GridList 
-        dataList={trasporti} 
-        fetchData={fetchData} 
-        onSave={handleCreate} 
-        onDelete={handleDelete} 
+      <GridList
+        dataList={trasporti}
+        fetchData={fetchData}
+        onSave={handleCreate}
+        onDelete={handleDelete}
       />
 
-{createFormState && (
+      {createFormState && (
         <CreateForm
           onSave={handleSave} // Passa la funzione di salvataggio
           onClose={handleCloseCreateForm} // Passa la funzione di chiusura
@@ -143,6 +147,9 @@ const TrasportiPage: React.FC = () => {
         />
       )}
       <div className="fixed bottom-6 right-6">
+      {trasporti.length === 0 ? (
+          <p></p>
+        ):(
         <Button
           gradientDuoTone="greenToBlue"
           size="lg"
@@ -151,7 +158,7 @@ const TrasportiPage: React.FC = () => {
         >
           <HiPlus className="h-6 w-6 mr-2" />
           Nuovo Trasporto
-        </Button>
+        </Button>)}
       </div>
     </Dashboard>
   );
