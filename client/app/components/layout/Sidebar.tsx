@@ -8,7 +8,7 @@ import useLoading from "../../hooks/useLoading";
 import { HiOutlineHome, HiOutlineUser, HiOutlineLogin, HiOutlineLogout, HiOutlineClipboardList, HiExclamationCircle } from "react-icons/hi"; // Importa le icone di Flowbite
 import { Button } from "flowbite-react";
 import { logout } from "@/app/redux/slices/authSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import dotenv from "dotenv";
 import { FaCheckCircle } from "react-icons/fa";
 import Pop from "../ui/Pop";
@@ -32,6 +32,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
   const [popMessage, setPopMessage] = useState(""); // Messaggio da passare al Pop
   const [popColor, setPopColor] = useState("green-600"); // Colore del Pop
   const [popIcon, setPopIcon] = useState(<FaCheckCircle className="h-5 w-5 text-green-600" />); // Icona del Pop
+  const authState = useSelector((state: any) => state.auth);
 
 
   useEffect(() => {
@@ -42,20 +43,28 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-        dispatch(logout());
-        setPopMessage("Logout avvenuto con successo. A presto!🖖");
-        setPopIcon(<FaCheckCircle className="h-5 w-5 text-green-600" />);
-        setPopColor("green-600");
-        setShowPop(true);
+    if (authState.access_token) {
+        try {
+            dispatch(logout());
+            setPopMessage("Logout avvenuto con successo. A presto!🖖");
+            setPopIcon(<FaCheckCircle className="h-5 w-5 text-green-600" />);
+            setPopColor("green-600");
+            setShowPop(true);
 
-        // piccolo delay prima del reindirizzamento per mostrare il messaggio
-        setTimeout(() => {
-          router.push('/');
-      }, 1500);
-    } catch (error: any) {
-        console.error('Logout error:', error);
-        setPopMessage("Errore durante il logout: " + error.message);
+            // piccolo delay prima del reindirizzamento per mostrare il messaggio
+            setTimeout(() => {
+                router.push('/');
+            }, 1500);
+        } catch (error: any) {
+            console.error('Logout error:', error);
+            setPopMessage("Errore durante il logout: " + error.message);
+            setPopColor("red-600");
+            setPopIcon(<HiExclamationCircle className="h-5 w-5 text-red-600" />);
+            setShowPop(true);
+        }
+    } else {
+        console.error('Logout error: Nessun utente autenticato');
+        setPopMessage("Errore durante il logout: Nessun utente autenticato");
         setPopColor("red-600");
         setPopIcon(<HiExclamationCircle className="h-5 w-5 text-red-600" />);
         setShowPop(true);
@@ -163,5 +172,4 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
 });
 
 export default Sidebar;
-
 
