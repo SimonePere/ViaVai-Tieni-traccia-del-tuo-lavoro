@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 import {
   Table,
@@ -11,7 +13,19 @@ import {
 import { useState, useEffect } from "react";
 import EditForm from "./EditForm";
 import Pop from "./Pop";
-import { HiCheck, HiX, HiPlus, HiPencil, HiTrash } from "react-icons/hi";
+import {
+  HiCheck,
+  HiX,
+  HiPlus,
+  HiPencil,
+  HiTrash,
+  HiTruck,
+  HiLocationMarker,
+  HiCalendar,
+  HiClock,
+  HiCurrencyEuro,
+  HiDocumentText,
+} from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { TrasportoInterface } from "../../types/trasporto";
 import { Utente } from "../../types/utente";
@@ -20,6 +34,7 @@ import {
   isTrasporto,
   updateTrasporto,
 } from "@/app/hooks/services/trasportiServices";
+import TransportCard from "./TransportCard";
 
 // Definizione del tipo generico per supportare sia TrasportoInterface che Utente
 type DataType = TrasportoInterface | Utente;
@@ -43,17 +58,38 @@ const GridList = <T extends DataType>({
   const [editFormState, setEditFormState] = useState<T | null>(null);
   const [formType, setFormType] = useState<"utente" | "trasporto">("trasporto");
   const [showPop, setShowPop] = useState(false);
+  const [selectedTransport, setSelectedTransport] =
+    useState<TrasportoInterface | null>(null);
   const [popConfig, setPopConfig] = useState({
     message: "",
     icon: <></>,
     color: "",
   });
+  const [captionMessage, setCaptionMessage] = useState<string>("");
 
   useEffect(() => {
     if (access_token) {
       fetchData();
     }
   }, [access_token]);
+
+  useEffect(() => {
+    if (access_token) {
+      if (dataList.length > 0) {
+        setCaptionMessage(
+          "Di seguito trovi l'elenco dei trasporti registrati."
+        );
+      } else {
+        setCaptionMessage(
+          "Nessun trasporto registrato o trovato per il tuo account."
+        );
+      }
+    } else {
+      setCaptionMessage(
+        "Effettua il login per visualizzare lo storico dei trasporti."
+      );
+    }
+  }, [access_token, dataList.length]);
 
   const handleEditClick = (data: T, type: "trasporto" | "utente") => {
     setEditFormState(data);
@@ -64,19 +100,35 @@ const GridList = <T extends DataType>({
     setEditFormState(null);
   };
 
+  const handleRowClick = (data: T) => {
+    if (data && isTrasporto(data)) {
+      setSelectedTransport(data);
+    }
+  };
+
+  const handleCloseTransportCard = () => {
+    setSelectedTransport(null);
+  };
+
+  const handleTransportUpdate = async (
+    updatedTransport: TrasportoInterface
+  ) => {
+    if (updatedTransport) {
+      await fetchData();
+    }
+  };
+
   const handleSave = async (updatedData: T) => {
     try {
       if (isTrasporto(updatedData)) {
-        // Se l'oggetto è di tipo TrasportoInterface, chiama la funzione di aggiornamento
         await updateTrasporto(updatedData._id, updatedData, access_token);
       } else {
-        // Altrimenti, chiama la funzione di creazione
         await createTrasporto(
           updatedData as unknown as TrasportoInterface,
           access_token
         );
       }
-      fetchData(); // Ricarica i dati
+      fetchData();
       setPopConfig({
         message: "Salvato con successo!",
         icon: <HiCheck className="h-5 w-5 text-green-500" />,
@@ -97,15 +149,15 @@ const GridList = <T extends DataType>({
   };
 
   const handleDeleteClick = async (data: T) => {
+    if (!data) return;
+
     try {
       if (isTrasporto(data)) {
-        // Se l'oggetto è di tipo TrasportoInterface, chiama la funzione di eliminazione
         await onDelete(data);
       } else {
         console.error(
           "Tentativo di eliminare un utente, operazione non supportata."
         );
-        // Gestisci il caso in cui non vuoi eliminare un utente
       }
       fetchData();
       setPopConfig({
@@ -136,53 +188,99 @@ const GridList = <T extends DataType>({
           color={popConfig.color}
         />
       )}
+
+      {selectedTransport && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={handleCloseTransportCard}
+        >
+          <div
+            className="relative w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-right mb-2">
+              <button
+                onClick={handleCloseTransportCard}
+                className="text-white text-sm px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600"
+              >
+                Chiudi
+              </button>
+            </div>
+            <TransportCard
+              transport={selectedTransport as TrasportoInterface}
+              onTransportUpdate={handleTransportUpdate}
+              onDelete={() => {
+                if (selectedTransport) {
+                  handleDeleteClick(selectedTransport as T);
+                  handleCloseTransportCard();
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       <Table hoverable>
         <caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
           Riepilogo Trasporti
           <p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
-            {/* Changed description to be dynamic */}
-            {access_token
-              ? dataList.length > 0
-                ? "Di seguito trovi l'elenco dei trasporti registrati."
-                : "Nessun trasporto registrato o trovato per il tuo account."
-              : "Effettua il login per visualizzare lo storico dei trasporti."}
+            {captionMessage}
           </p>
         </caption>
         <TableHead>
-          <TableHeadCell className="w-24 md:w-auto">Tipo</TableHeadCell>
-          <TableHeadCell className="w-32 md:w-auto">Descrizione</TableHeadCell>
-          <TableHeadCell className="w-32 md:w-auto">Destinazione</TableHeadCell>
-          <TableHeadCell className="hidden md:table-cell">
-            Giornata
+          <TableHeadCell className="w-24 md:w-auto">
+            <div className="flex items-center gap-2">
+              <HiTruck className="h-5 w-5 text-blue-600" />
+              <span>Tipo</span>
+            </div>
+          </TableHeadCell>
+          <TableHeadCell className="w-32 md:w-auto">
+            <div className="flex items-center gap-2">
+              <HiDocumentText className="h-5 w-5 text-gray-700" />
+              <span>Descrizione</span>
+            </div>
+          </TableHeadCell>
+          <TableHeadCell className="w-32 md:w-auto">
+            <div className="flex items-center gap-2">
+              <HiLocationMarker className="h-5 w-5 text-red-600" />
+              <span>Destinazione</span>
+            </div>
           </TableHeadCell>
           <TableHeadCell className="hidden md:table-cell">
-            Ore di Lavoro
+            <div className="flex items-center gap-2">
+              <HiCalendar className="h-5 w-5 text-indigo-600" />
+              <span>Giornata</span>
+            </div>
           </TableHeadCell>
           <TableHeadCell className="hidden md:table-cell">
-            Importo
+            <div className="flex items-center gap-2">
+              <HiClock className="h-5 w-5 text-yellow-600" />
+              <span>Ore di Lavoro</span>
+            </div>
           </TableHeadCell>
-          <TableHeadCell>
-            {/* <span className="sr-only">Modifica</span> */}
+          <TableHeadCell className="hidden md:table-cell">
+            <div className="flex items-center gap-2">
+              <HiCurrencyEuro className="h-5 w-5 text-green-700" />
+              <span>Importo</span>
+            </div>
           </TableHeadCell>
-          <TableHeadCell>
-            {/* <span className="sr-only">Elimina</span> */}
-          </TableHeadCell>
+          <TableHeadCell></TableHeadCell>
+          <TableHeadCell></TableHeadCell>
         </TableHead>
         <TableBody>
           {dataList.length > 0 ? (
             dataList.map((data: T, index: number) => (
               <TableRow
                 key={index}
-                className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                className="bg-white dark:border-gray-700 dark:bg-gray-800 cursor-pointer"
+                onClick={() => handleRowClick(data)}
               >
                 {isTrasporto(data) ? (
                   <>
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {/* Mostra il testo completo su schermi md e superiori */}
                       <span className="hidden md:block">
                         {data.tipo_lavoro}
                       </span>
-                      {/* Mostra solo l'iniziale su schermi più piccoli */}
 
                       <span className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-lg">
                         {data.tipo_lavoro.charAt(0)}
@@ -205,16 +303,23 @@ const GridList = <T extends DataType>({
                     Dati non disponibili per questo utente
                   </TableCell>
                 )}
-                <TableCell>
-                  <div onClick={() => handleEditClick(data, "trasporto")}>
+                <TableCell
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditClick(data, "trasporto");
+                  }}
+                >
+                  <div>
                     <HiPencil className="h-5 w-5 cursor-pointer" />
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div
-                    onClick={() => handleDeleteClick(data)}
-                    className="text-red-500"
-                  >
+                <TableCell
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(data);
+                  }}
+                >
+                  <div className="text-red-500">
                     <HiTrash className="h-5 w-5 cursor-pointer" />
                   </div>
                 </TableCell>

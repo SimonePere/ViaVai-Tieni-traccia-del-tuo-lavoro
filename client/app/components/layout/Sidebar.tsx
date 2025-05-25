@@ -63,7 +63,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, toggleSideba
             setShowPop(true);
         }
     } else {
-        console.error('Logout error: Nessun utente autenticato');
         setPopMessage("Errore durante il logout: Nessun utente autenticato");
         setPopColor("red-600");
         setPopIcon(<HiExclamationCircle className="h-5 w-5 text-red-600" />);

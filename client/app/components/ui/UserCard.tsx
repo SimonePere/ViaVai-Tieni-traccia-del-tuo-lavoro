@@ -5,7 +5,16 @@ import { Utente } from "@/app/types/utente"; // Importiamo il tipo per l'utente
 import { useState } from "react"; // Importa useState
 import EditForm from "./EditForm"; // Importa il componente EditForm
 import { useDispatch, useSelector } from "react-redux";
-import { HiCheck, HiX } from "react-icons/hi";
+import { 
+  HiCheck, 
+  HiX, 
+  HiMail, 
+  HiPhone, 
+  HiLocationMarker, 
+  HiCalendar,
+  HiUser,
+  HiUserGroup
+} from "react-icons/hi";
 import Pop from "./Pop";
 import { TrasportoInterface } from "../../types/trasporto";
 import { setUsers } from "@/app/redux/slices/usersSlice";
@@ -105,6 +114,16 @@ const UserCard = ({ user, onUserUpdate, onDelete }: UserCardProps) => {
     setEditFormState(null);
   };
 
+  // Formatta la data di registrazione
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "Data non disponibile";
+    try {
+      return new Date(dateString).toLocaleDateString("it-IT");
+    } catch (error) {
+      return "Data non valida";
+    }
+  };
+
   return (
     <Card className="max-w-sm">
       {showPop && (
@@ -155,42 +174,47 @@ const UserCard = ({ user, onUserUpdate, onDelete }: UserCardProps) => {
         <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">
           {user.nome} {user.cognome}
         </h5>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {user.email || "Email non disponibile"}
-        </span>
+        
+        <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <HiMail className="mr-2 h-5 w-5 text-blue-500" />
+          <span>{user.email || "Email non disponibile"}</span>
+        </div>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Telefono: {user.telefono || "Telefono non disponibile"}
-        </p>
+        <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <HiPhone className="mr-2 h-5 w-5 text-green-500" />
+          <span>{user.telefono || "Telefono non disponibile"}</span>
+        </div>
 
         {user.utente_citta ? (
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            <p>{user.utente_citta || "Indirizzo non disponibile"}, </p>
+          <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <HiLocationMarker className="mr-2 h-5 w-5 text-red-500" />
+            <span>{user.utente_citta}</span>
           </div>
         ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Indirizzo non disponibile
-          </p>
+          <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <HiLocationMarker className="mr-2 h-5 w-5 text-red-500" />
+            <span>Indirizzo non disponibile</span>
+          </div>
         )}
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-          Registrato il:{" "}
-          {user.dataRegistrazione
-            ? new Date(user.dataRegistrazione).toLocaleDateString("it-IT")
-            : "Data di registrazione non disponibile"}
-        </p>
+        <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <HiCalendar className="mr-2 h-5 w-5 text-purple-500" />
+          <span>Registrato il: {user.dataRegistrazione ? formatDate(user.dataRegistrazione.toString()) : "Data non disponibile"}</span>
+        </div>
 
         <div className="mt-4 flex space-x-3 lg:mt-6">
           <a
             href="#"
             className="inline-flex items-center rounded-lg bg-cyan-700 px-4 py-2 text-center text-sm font-medium text-white hover:bg-cyan-800 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:focus:ring-cyan-800"
           >
+            <HiUserGroup className="mr-2 h-4 w-4" />
             Aggiungi amico
           </a>
           <a
             href="#"
             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
           >
+            <HiMail className="mr-2 h-4 w-4" />
             Messaggio
           </a>
         </div>

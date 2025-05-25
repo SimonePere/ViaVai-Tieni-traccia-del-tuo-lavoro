@@ -1,6 +1,7 @@
 "use client";
 
 import Dashboard from "./components/layout/Dashboard";
+import TransportCard from "./components/ui/TransportCard";
 
 
 export default function Home() {
@@ -13,7 +14,7 @@ export default function Home() {
         {/* qua potremmo mettere un riepilogo a widget con tutti
                 overview di quello che si puo controllare
                 sorta di pannello controllo */}
-        
+
       </div>
     </Dashboard>
   );

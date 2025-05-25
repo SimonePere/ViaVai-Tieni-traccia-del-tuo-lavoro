@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
@@ -15,6 +17,7 @@ import CreateForm from "@/app/components/ui/CreateForm";
 import { Utente } from "@/app/types/utente";
 import { TrasportoInterface } from "@/app/types/trasporto";
 import Pop from "@/app/components/ui/Pop";
+import TrasportiListSkeleton from "./components/TrasportiListSkeleton";
 
 const TrasportiPage: React.FC = () => {
   const dispatch = useDispatch();
@@ -25,6 +28,7 @@ const TrasportiPage: React.FC = () => {
   const [formType, setFormType] = useState<"utente" | "trasporto">("trasporto");
   // Aggiungi stati per il Pop
   const [showPop, setShowPop] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Aggiungiamo lo stato di loading
   const [popConfig, setPopConfig] = useState({
     message: "",
     icon: <></>,
@@ -33,13 +37,12 @@ const TrasportiPage: React.FC = () => {
 
   // Funzione per ottenere i trasporti con fetch
   const fetchData = async () => {
-    if (access_token) {
-      try {
-        const data = await fetchTrasporti(access_token);
-        dispatch(setTrasporti(data)); // Imposta i trasporti nel Redux
-      } catch (error) {
-        console.error("Errore nel recupero dei trasporti:", error);
-      }
+    if (!access_token) return;
+    try {
+      const data = await fetchTrasporti(access_token);
+      dispatch(setTrasporti(data));
+    } catch (error) {
+      console.error("Errore nel recupero dei trasporti:", error);
     }
   };
 
@@ -123,6 +126,19 @@ const TrasportiPage: React.FC = () => {
     fetchData(); // Chiamata API per recuperare trasporti quando il componente è montato
   }, [access_token]); // Effettua la chiamata ogni volta che il token cambia
 
+  // Gestione del caricamento iniziale
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      await fetchData();
+      setIsLoading(false);
+    };
+
+    if (access_token) {
+      loadInitialData();
+    }
+  }, [access_token]);
+
   return (
     <Dashboard>
       {showPop && (
@@ -132,36 +148,69 @@ const TrasportiPage: React.FC = () => {
           color={popConfig.color}
         />
       )}
-      <GridList
-        dataList={trasporti}
-        fetchData={fetchData}
-        onSave={handleCreate}
-        onDelete={handleDelete}
-      />
 
-      {createFormState && (
-        <CreateForm
-          onSave={handleSave} // Passa la funzione di salvataggio
-          onClose={handleCloseCreateForm} // Passa la funzione di chiusura
-          type={formType} // Passa il tipo di form
-        />
+      {isLoading ? (
+        <TrasportiListSkeleton />
+      ) : (
+        <>
+          <GridList
+            dataList={trasporti}
+            fetchData={fetchData}
+            onSave={handleCreate}
+            onDelete={handleDelete}
+          />
+
+          {createFormState && (
+            <CreateForm
+              onSave={handleSave} // Passa la funzione di salvataggio
+              onClose={handleCloseCreateForm} // Passa la funzione di chiusura
+              type={formType} // Passa il tipo di form
+            />
+          )}
+
+          <div className="fixed bottom-6 right-6">
+            {trasporti.length === 0 ? (
+              <p></p>
+            ) : (
+              <Button
+                gradientDuoTone="greenToBlue"
+                size="lg"
+                pill
+                onClick={handleNewTrasporto}
+              >
+                <HiPlus className="h-6 w-6 mr-2" />
+                Nuovo Trasporto
+              </Button>
+            )}
+          </div>
+        </>
       )}
-      <div className="fixed bottom-6 right-6">
-      {trasporti.length === 0 ? (
-          <p></p>
-        ):(
-        <Button
-          gradientDuoTone="greenToBlue"
-          size="lg"
-          pill
-          onClick={handleNewTrasporto}
-        >
-          <HiPlus className="h-6 w-6 mr-2" />
-          Nuovo Trasporto
-        </Button>)}
-      </div>
     </Dashboard>
   );
 };
 
 export default TrasportiPage;
+
+//note utili su Usestate e USeeffect
+
+// useEffect vs useState:
+// useState serve per gestire lo stato di una variabile
+// useEffect serve per gestire gli "effetti collaterali" del componente,
+// cioè operazioni che devono essere eseguite in risposta a certi cambiamenti
+// Nel nostro caso, vogliamo che il caricamento dei dati
+// avvenga quando il componente viene montato e quando cambia l'access_token
+
+// Questo verrà eseguito solo al primo render
+// useEffect(() => {
+//   // codice
+// }, []);
+
+// // Questo verrà eseguito ad ogni render
+// useEffect(() => {
+//   // codice
+// });
+
+// // Questo verrà eseguito quando cambia access_token
+// useEffect(() => {
+//   // codice
+// }, [access_token]);
