@@ -1,8 +1,9 @@
+/** @format */
+
 "use client";
 
 import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
 import { useState, useEffect } from "react";
-import Dashboard from "@/app/components/layout/Dashboard";
 import { Button } from "flowbite-react";
 import { HiCheck, HiX } from "react-icons/hi";
 import { setUsers } from "@/app/redux/slices/usersSlice";
@@ -38,7 +39,7 @@ const UtentiPage: React.FC<UsersListProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   // Aggiungi stato per l'utente selezionato da mobile
   const [selectedUser, setSelectedUser] = useState<Utente | null>(null);
-  
+
   const [editFormState, setEditFormState] = useState<
     Utente | TrasportoInterface | null
   >(null);
@@ -64,9 +65,9 @@ const UtentiPage: React.FC<UsersListProps> = ({
     };
 
     checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
+    window.addEventListener("resize", checkIsMobile);
 
-    return () => window.removeEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
   useEffect(() => {
@@ -87,8 +88,8 @@ const UtentiPage: React.FC<UsersListProps> = ({
     setFormType(type);
   };
 
-   // Funzione per selezionare un utente dalla lista mobile
-   const handleUserSelect = (user: Utente) => {
+  // Funzione per selezionare un utente dalla lista mobile
+  const handleUserSelect = (user: Utente) => {
     setSelectedUser(user);
   };
 
@@ -201,7 +202,7 @@ const UtentiPage: React.FC<UsersListProps> = ({
   }, [access_token]); // Effettua la chiamata ogni volta che il token cambia
 
   return (
-    <Dashboard>
+    <>
       {showPop && (
         <Pop
           message={popConfig.message}
@@ -212,16 +213,16 @@ const UtentiPage: React.FC<UsersListProps> = ({
 
       {/* Mostra la UserCard dell'utente selezionato su mobile */}
       {isMobile && selectedUser && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
           onClick={handleCloseUserCard} // Chiude quando si clicca sullo sfondo
         >
-          <div 
+          <div
             className="relative w-full max-w-md"
             onClick={(e) => e.stopPropagation()} // Previene la chiusura quando si clicca sulla card
           >
             <div className="text-right mb-2">
-              <button 
+              <button
                 onClick={handleCloseUserCard}
                 className="text-white text-sm px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600"
               >
@@ -230,7 +231,9 @@ const UtentiPage: React.FC<UsersListProps> = ({
             </div>
             <UserCard
               user={selectedUser}
-              onDelete={() => selectedUser._id && handleDeleteUser(selectedUser._id)}
+              onDelete={() =>
+                selectedUser._id && handleDeleteUser(selectedUser._id)
+              }
             />
           </div>
         </div>
@@ -238,21 +241,16 @@ const UtentiPage: React.FC<UsersListProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.length === 0 ? (
           <p>Nessun utente trovato.</p>
+        ) : isMobile ? (
+          <SmallList users={users} onUserSelect={handleUserSelect} />
         ) : (
-          isMobile ? (
-            <SmallList 
-            users={users}
-            onUserSelect={handleUserSelect}  
-          />
-          ) : (
-            users.map((user: any) => (
-              <UserCard
-                key={user._id}
-                user={user}
-                onDelete={() => handleDeleteUser(user._id)}
-              />
-            ))
-          )
+          users.map((user: any) => (
+            <UserCard
+              key={user._id}
+              user={user}
+              onDelete={() => handleDeleteUser(user._id)}
+            />
+          ))
         )}
       </div>
       {editFormState && (
@@ -286,12 +284,11 @@ const UtentiPage: React.FC<UsersListProps> = ({
           </Button>
         )}
       </div>
-    </Dashboard>
+    </>
   );
 };
 
 export default UtentiPage;
-
 
 // Dopo ogni operazione (create/update/delete) chiami fetchUsers()
 // fetchUsers aggiorna lo stato Redux con dispatch(setUsers(data))
@@ -304,6 +301,6 @@ export default UtentiPage;
 // invece di fare una nuova chiamata API
 // Riducendo il numero di chiamate al server
 // Ma il tuo approccio attuale funziona
-// perché mantieni la sincronizzazione tra il 
+// perché mantieni la sincronizzazione tra il
 // frontend e il backend ricaricando sempre
 // i dati freschi dal Server.

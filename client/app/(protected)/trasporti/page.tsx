@@ -3,7 +3,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
-import Dashboard from "@/app/components/layout/Dashboard";
 import { setTrasporti } from "@/app/redux/slices/trasportiSlice";
 import GridList from "@/app/components/ui/GridList";
 import {
@@ -140,7 +139,7 @@ const TrasportiPage: React.FC = () => {
   }, [access_token]);
 
   return (
-    <Dashboard>
+    <>
       {showPop && (
         <Pop
           message={popConfig.message}
@@ -185,7 +184,7 @@ const TrasportiPage: React.FC = () => {
           </div>
         </>
       )}
-    </Dashboard>
+    </>
   );
 };
 

@@ -1,11 +1,10 @@
 /** @format */
 
 import React from "react";
-import Dashboard from "@/app/components/layout/Dashboard";
 
 const TrasportiListSkeleton: React.FC = () => {
   return (
-    <Dashboard>
+    <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {[...Array(6)].map((_, index) => (
           <div key={index} className="bg-white rounded-lg shadow-md p-4">
@@ -37,7 +36,7 @@ const TrasportiListSkeleton: React.FC = () => {
       <div className="fixed bottom-6 right-6">
         <div className="h-12 w-40 bg-gray-200 rounded-full skeleton-pulse"></div>
       </div>
-    </Dashboard>
+    </>
   );
 };
 
