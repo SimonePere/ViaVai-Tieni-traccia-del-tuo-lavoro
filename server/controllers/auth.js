@@ -80,7 +80,7 @@ export const login = async (req, res) => {
 
     const existingUser = await Utente.findOne({ email });
     console.log("Utente trovato:", existingUser);
-    //troviamo una prima corrispondenza con l'email, 
+    //troviamo una prima corrispondenza con l'email,
     // (essendo che gia di sua natura è univoca) inserito.
 
     if (!existingUser)
@@ -96,6 +96,8 @@ export const login = async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, existingUser.password);
     console.log("Password match:", passwordMatch);
 
+    const email_utente = existingUser.email;
+
     // a questo punto, se combacia il nome, e se combacia anche la psw,
     // generiamo il token con jwt per passare i dati che servono al backend
     // ovvero nome e psw, MIRACCOMANDO NON DATI SENSIBILI!!!
@@ -105,7 +107,11 @@ export const login = async (req, res) => {
         { id: existingUser._id, nome: existingUser.nome },
         JWT_SECRET
       );
-      return res.json({ status: "ok", access_token: token });
+      return res.json({
+        status: "ok",
+        access_token: token,
+        email_utente: email_utente,
+      });
     }
 
     res
@@ -118,7 +124,6 @@ export const login = async (req, res) => {
       .json({ status: "error", message: "Errore interno del server" });
   }
 };
-
 
 // Il processo corretto è:
 // Utente fa login → Server genera nuovo token

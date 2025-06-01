@@ -1,18 +1,20 @@
-"use client"
+/** @format */
+
+"use client";
 
 import {
   FolderIcon,
   MoreHorizontalIcon,
   ShareIcon,
   type LucideIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -21,22 +23,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function NavDocuments({
   items,
 }: {
   items: {
-    name: string
-    url: string
-    icon: LucideIcon
-  }[]
+    name: string;
+    url: string;
+    icon: LucideIcon;
+  }[];
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>Documenti</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
@@ -53,7 +55,7 @@ export function NavDocuments({
                   className="rounded-sm data-[state=open]:bg-accent"
                 >
                   <MoreHorizontalIcon />
-                  <span className="sr-only">More</span>
+                  <span className="sr-only">Altro</span>
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -63,11 +65,11 @@ export function NavDocuments({
               >
                 <DropdownMenuItem>
                   <FolderIcon />
-                  <span>Open</span>
+                  <span>Apri</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <ShareIcon />
-                  <span>Share</span>
+                  <span>Condividi</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -76,10 +78,10 @@ export function NavDocuments({
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
             <MoreHorizontalIcon className="text-sidebar-foreground/70" />
-            <span>More</span>
+            <span>Altro</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

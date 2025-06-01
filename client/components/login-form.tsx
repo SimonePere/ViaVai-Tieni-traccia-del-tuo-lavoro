@@ -68,10 +68,11 @@ export function LoginForm2({
       const data = await response.json();
 
       if (data.status === "ok") {
+        console.log("Dati (login-form) completi ricevuti dal server:", data);
+        // console.log("Email utente:", data.email_utente);
+        // console.log("Token: ", data.access_token);
         dispatch(loginSuccess(data));
         setIsSuccess(true);
-        console.log("Informazioni utente:", data);
-        console.log("data access_token da LOGINFORM: ", data.access_token);
       } else {
         throw new Error("Login fallito");
       }

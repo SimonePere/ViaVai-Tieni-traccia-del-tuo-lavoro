@@ -16,8 +16,10 @@ import {
   HelpCircleIcon,
   LayoutDashboardIcon,
   ListIcon,
+  LogInIcon,
   SearchIcon,
   SettingsIcon,
+  UserPlusIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -36,10 +38,14 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import dotenv from "dotenv";
+import { useDispatch, useSelector } from "react-redux";
+import { loginSuccess } from "@/app/redux/slices/authSlice";
 
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
 
+// Dati statici per la navigazione e l'utente di default
+// Questi dati vengono utilizzati quando l'utente non è autenticato
 const data = {
   user: {
     name: "shadcn",
@@ -49,28 +55,38 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/",
+      url: "/dashboard",
       icon: LayoutDashboardIcon,
     },
     {
       title: "Trasporti",
-      url: "/trasporti",
+      url: "/lista-trasporti",
       icon: ListIcon,
     },
     {
-      title: "Analytics",
+      title: "Analisi",
       url: "#",
       icon: BarChartIcon,
     },
     {
-      title: "Projects",
+      title: "Archivio",
       url: "#",
       icon: FolderIcon,
     },
     {
       title: "Utenti",
-      url: "/utenti",
+      url: "/lista-utenti",
       icon: UsersIcon,
+    },
+    {
+      title: "Log In",
+      url: "/login-user",
+      icon: LogInIcon,
+    },
+    {
+      title: "Registrati",
+      url: "/register-user",
+      icon: UserPlusIcon,
     },
   ],
   navClouds: [
@@ -123,34 +139,34 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Settings",
+      title: "Impostazioni",
       url: "#",
       icon: SettingsIcon,
     },
     {
-      title: "Get Help",
+      title: "Aiuto",
       url: "#",
       icon: HelpCircleIcon,
     },
     {
-      title: "Search",
+      title: "Cerca",
       url: "#",
       icon: SearchIcon,
     },
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Libreria Dati",
       url: "#",
       icon: DatabaseIcon,
     },
     {
-      name: "Reports",
+      name: "Appunti",
       url: "#",
       icon: ClipboardListIcon,
     },
     {
-      name: "Word Assistant",
+      name: "Assistant",
       url: "#",
       icon: FileIcon,
     },
@@ -158,6 +174,52 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Hook per dispatchare azioni Redux
+  const dispatch = useDispatch();
+
+  // Selezione dello stato Redux
+  // 1. authState: contiene i dati dell'autenticazione (user, email, token, ecc.)
+  // 2. allState: contiene l'intero stato dell'applicazione per debug
+  const authState = useSelector((state: any) => state.auth);
+  const allState = useSelector((state: any) => state);
+
+  // Debug degli stati
+  // Questi log ci aiutano a capire:
+  // - Se lo stato Redux è stato inizializzato correttamente
+  // - Se i dati dell'utente sono presenti
+  // - Se l'utente è autenticato
+  console.log("TUTTO LO STATO REDUX:", allState);
+  console.log("AUTH STATE:", authState);
+
+  // Creazione dell'oggetto userInfo per il componente NavUser
+  // Questo oggetto viene creato in base allo stato di autenticazione:
+  // - Se l'utente è autenticato: usa i dati dallo stato Redux
+  // - Se l'utente non è autenticato: usa valori di default
+  const userInfo = {
+    name: authState?.user || "Utente non loggato",
+    email: authState?.email || "Nessuna email",
+  };
+
+  console.log("USER INFO CREATA:", userInfo);
+
+  // Verifica dello stato di autenticazione
+  // Questo blocco ci aiuta a capire se:
+  // - L'utente è autenticato (isAuthenticated === true)
+  // - I dati dell'utente sono disponibili (user ed email)
+  if (authState?.isAuthenticated) {
+    console.log("Utente autenticato, dati:", {
+      name: authState.user,
+      email: authState.email,
+    });
+  } else {
+    console.log("Utente non autenticato");
+  }
+
+  // Renderizzazione del componente
+  // Il componente NavUser riceve i dati dell'utente attraverso la prop user
+  // Questi dati possono essere:
+  // - I dati reali dell'utente se autenticato
+  // - I valori di default se non autenticato
   return (
     <Sidebar collapsible="offcanvas" {...props} className="">
       <SidebarHeader>
@@ -181,7 +243,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {/* Passaggio dei dati dell'utente al componente NavUser */}
+        <NavUser user={userInfo} />
       </SidebarFooter>
     </Sidebar>
   );

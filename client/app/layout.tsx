@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import "./styles/globals.css";
 import { StoreProviders } from "./providers";
 import { ThemeProvider } from "@/components/theme-provider";
-import BaseLayout from "./components/layout/BaseLayout";
+import BaseLayout from "../components/layout/BaseLayout";
 
 export const metadata: Metadata = {
   title: "ViaVai | Tieni traccia del tuo lavoro!",

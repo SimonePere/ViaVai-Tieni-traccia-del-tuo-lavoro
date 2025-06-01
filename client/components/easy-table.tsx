@@ -22,7 +22,9 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   ColumnsIcon,
+  PencilIcon,
   PlusIcon,
+  TrashIcon,
 } from "lucide-react";
 import { z } from "zod";
 
@@ -77,7 +79,9 @@ const utenteSchema = z.object({
 });
 
 // Tipo unione che può essere sia un trasporto che un utente
-type TableData = z.infer<typeof trasportoSchema> | z.infer<typeof utenteSchema>;
+export type TableData =
+  | z.infer<typeof trasportoSchema>
+  | z.infer<typeof utenteSchema>;
 
 /**
  * Type guard per verificare se un dato è un trasporto
@@ -98,40 +102,71 @@ function isUtente(data: TableData): data is z.infer<typeof utenteSchema> {
 }
 
 /**
- * Funzione che restituisce le definizioni delle colonne in base al tipo di tabella
+ * Funzione che ritorna LE COLONNE in base al tipo di tabella
  * @param type - Il tipo di tabella ('trasporto' o 'utente')
+ * @param onDelete - Funzione per eliminare una riga
+ * @param onEdit - Funzione per editare una riga
  * @returns Array di definizioni di colonne
  */
-function getColumns(type: string): ColumnDef<TableData>[] {
+function getColumns(
+  type: string,
+  onDelete: (row: TableData) => void,
+  onEdit?: (row: TableData) => void
+): ColumnDef<TableData>[] {
   // Colonne base comuni a tutti i tipi di tabella
   const baseColumns: ColumnDef<TableData>[] = [
+    // CHECKBOX PER SELEZIONARE PIU ELEMENTI (eliminata x inutilizzo)
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <div className="flex items-center justify-center">
+    //       <Checkbox
+    //         checked={
+    //           table.getIsAllPageRowsSelected() ||
+    //           (table.getIsSomePageRowsSelected() && "indeterminate")
+    //         }
+    //         onCheckedChange={(value) =>
+    //           table.toggleAllPageRowsSelected(!!value)
+    //         }
+    //         aria-label="Seleziona tutto"
+    //       />
+    //     </div>
+    //   ),
+    //   cell: ({ row }) => (
+    //     <div className="flex items-center justify-center">
+    //       <Checkbox
+    //         checked={row.getIsSelected()}
+    //         onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //         aria-label="Seleziona riga"
+    //       />
+    //     </div>
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
-      id: "select",
-      header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Seleziona tutto"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Seleziona riga"
-          />
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
+      id: "actions",
+      header: "Azioni",
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit?.(row.original)}
+            >
+              <PencilIcon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(row.original)}
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -254,12 +289,32 @@ function getColumns(type: string): ColumnDef<TableData>[] {
   return baseColumns;
 }
 
+interface EasyTableProps {
+  data: TableData[];
+  type: string;
+  fetchData: () => void;
+  onAdd?: () => void;
+  onEdit?: (row: TableData) => void;
+  onSave: (row: TableData) => void;
+  onDelete: (row: TableData) => void;
+  showActions?: boolean;
+}
+
 /**
  * Componente EasyTable - Una tabella dati flessibile e personalizzabile
  * @param data - Array di dati da visualizzare (trasporti o utenti)
  * @param type - Tipo di dati ('trasporto' o 'utente')
  */
-export function EasyTable({ data, type }: { data: TableData[]; type: string }) {
+export function EasyTable({
+  data,
+  type,
+  fetchData,
+  onAdd,
+  onEdit,
+  onSave,
+  onDelete,
+  showActions = true,
+}: EasyTableProps) {
   // Stati per gestire la selezione delle righe
   const [rowSelection, setRowSelection] = React.useState({});
   // Stati per gestire la visibilità delle colonne
@@ -278,7 +333,7 @@ export function EasyTable({ data, type }: { data: TableData[]; type: string }) {
   // Inizializzazione della tabella con le configurazioni
   const table = useReactTable({
     data,
-    columns: getColumns(type),
+    columns: getColumns(type, onDelete, onEdit),
     state: {
       sorting,
       columnVisibility,
@@ -305,13 +360,19 @@ export function EasyTable({ data, type }: { data: TableData[]; type: string }) {
         <div className="flex flex-1 items-center space-x-2">
           {/* Campo di ricerca globale */}
           <Input
-            placeholder="Filtra tutti i campi..."
+            placeholder="Cerca..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="h-8 w-[150px] lg:w-[250px]"
           />
+          {onAdd && (
+            <Button variant="outline" size="sm" onClick={onAdd} className="h-8">
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Aggiungi
+            </Button>
+          )}
         </div>
-        {/* Menu per la visibilità delle colonne */}
+        {/* Menu per la visibilità e filtri delle colonne */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="ml-auto">
@@ -340,7 +401,7 @@ export function EasyTable({ data, type }: { data: TableData[]; type: string }) {
         </DropdownMenu>
       </div>
 
-      {/* Contenitore principale della tabella */}
+      {/* Contenitore principale della tabella Header */}
       <div className="rounded-md border">
         <Table>
           {/* Intestazione della tabella */}
@@ -362,7 +423,7 @@ export function EasyTable({ data, type }: { data: TableData[]; type: string }) {
               </TableRow>
             ))}
           </TableHeader>
-          {/* Corpo della tabella */}
+          {/* Corpo della tabella Body */}
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
@@ -383,7 +444,7 @@ export function EasyTable({ data, type }: { data: TableData[]; type: string }) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={getColumns(type).length}
+                  colSpan={getColumns(type, onDelete, onEdit).length}
                   className="h-24 text-center"
                 >
                   Nessun risultato.

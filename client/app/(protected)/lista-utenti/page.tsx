@@ -30,7 +30,7 @@ export default function ListaUtenti() {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4 mt-8">Lista Utenti</h2>
-      <EasyTable data={utentiData} type="utente" />
+      {/* <EasyTable data={utentiData} type="utente" /> */}
     </div>
   );
 }

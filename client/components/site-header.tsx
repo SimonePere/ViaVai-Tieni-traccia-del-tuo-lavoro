@@ -1,6 +1,5 @@
 /** @format */
 
-import { ModeToggle } from "@/app/components/ui/ModeToggle";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -15,9 +14,7 @@ export function SiteHeader({ NavbarTitle }: { NavbarTitle: string }) {
         />
         <h1 className="text-base font-medium">{NavbarTitle}</h1>
       </div>
-      <div className=" flex w-full justify-end gap-1 px-4 lg:gap-2 lg:px-6">
-        <ModeToggle />
-      </div>
+      <div className=" flex w-full justify-end gap-1 px-4 lg:gap-2 lg:px-6"></div>
     </header>
   );
 }
