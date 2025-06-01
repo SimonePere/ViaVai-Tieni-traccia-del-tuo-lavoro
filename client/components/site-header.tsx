@@ -2,6 +2,7 @@
 
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ModeToggle } from "./ui/ModeToggle";
 
 export function SiteHeader({ NavbarTitle }: { NavbarTitle: string }) {
   return (
@@ -12,9 +13,11 @@ export function SiteHeader({ NavbarTitle }: { NavbarTitle: string }) {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">{NavbarTitle}</h1>
+        <h2 className="text-base font-medium">{NavbarTitle}</h2>
       </div>
-      <div className=" flex w-full justify-end gap-1 px-4 lg:gap-2 lg:px-6"></div>
+      <div className=" flex w-full justify-end gap-1 px-4 lg:gap-2 lg:px-6">
+        <ModeToggle />
+      </div>
     </header>
   );
 }
