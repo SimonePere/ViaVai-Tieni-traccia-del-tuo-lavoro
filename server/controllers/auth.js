@@ -76,7 +76,7 @@ export const register = async (req, res) => {
 //Auth Login
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, nome } = req.body;
 
     const existingUser = await Utente.findOne({ email });
     console.log("Utente trovato:", existingUser);
@@ -97,6 +97,7 @@ export const login = async (req, res) => {
     console.log("Password match:", passwordMatch);
 
     const email_utente = existingUser.email;
+    const nome_utente = existingUser.nome;
 
     // a questo punto, se combacia il nome, e se combacia anche la psw,
     // generiamo il token con jwt per passare i dati che servono al backend
@@ -110,6 +111,7 @@ export const login = async (req, res) => {
       return res.json({
         status: "ok",
         access_token: token,
+        nome_utente: nome_utente,
         email_utente: email_utente,
       });
     }
@@ -131,3 +133,30 @@ export const login = async (req, res) => {
 // Il client salva il token (localStorage, cookie, etc.)
 // Quando serve autenticazione, il client invia il token
 // Il server verifica il token usando SOLO il JWT_SECRET
+
+// Verifica Token gia autenticato
+export const verifyToken = async (req, res) => {
+  try {
+    // req.user è già popolato dal middleware di autenticazione
+    const user = await Utente.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "Utente non trovato",
+      });
+    }
+
+    res.json({
+      status: "ok",
+      access_token: req.headers.authorization.split(" ")[1], // il token attuale
+      nome_utente: user.nome,
+      email_utente: user.email,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Errore nella verifica del token",
+    });
+  }
+};

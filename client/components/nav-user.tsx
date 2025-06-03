@@ -1,5 +1,4 @@
 /** @format */
-
 "use client";
 
 import {
@@ -27,10 +26,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+import { CustomPopover } from "@/components/ui/custom-popover";
+import { Button } from "@/components/ui/button";
+
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter } from "next/navigation"; // App Router
 import useLoading from "../app/hooks/useLoading";
 import { logout } from "@/app/redux/slices/authSlice";
+import { useState } from "react";
+import { XCircle, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function NavUser({
   user,
@@ -46,21 +51,26 @@ export function NavUser({
   const router = useRouter();
   const authState = useSelector((state: any) => state.auth);
   const { isLoading, startLoading, stopLoading } = useLoading();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogout = async () => {
     if (authState.access_token) {
       try {
+        startLoading();
         dispatch(logout());
-
+        setIsSuccess(true);
+        setError(null);
         // piccolo delay prima del reindirizzamento per mostrare il messaggio
         setTimeout(() => {
           router.push("/");
         }, 1500);
-      } catch (error: any) {
-        console.error("Logout error:", error);
+      } catch (err: any) {
+        setError(err.message || "Si è verificato un errore durante il logout");
+        setIsSuccess(false);
+      } finally {
+        stopLoading();
       }
-    } else {
     }
   };
 
@@ -130,10 +140,51 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSubmit}>
-              <LogOutIcon />
-              Log out
-            </DropdownMenuItem>
+            <CustomPopover
+              triggerText="Log out"
+              triggerIcon={<LogOutIcon />}
+              align="end"
+              side={isMobile ? "bottom" : "right"}
+            >
+              <div className="flex flex-col gap-4 p-2">
+                <p className="text-sm">
+                  Sei sicuro di voler effettuare il logout?
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" size="sm">
+                    Annulla
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleLogout}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Logout in corso..." : "Logout"}
+                  </Button>
+                </div>
+                {error && (
+                  <Alert
+                    variant="destructive"
+                    className="bg-red-50 border-red-200"
+                  >
+                    <XCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-600">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {isSuccess && (
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-600">
+                      Logout effettuato. A presto!
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </CustomPopover>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

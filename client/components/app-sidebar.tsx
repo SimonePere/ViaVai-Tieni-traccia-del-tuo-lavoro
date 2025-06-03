@@ -3,6 +3,7 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpCircleIcon,
   BarChartIcon,
@@ -40,6 +41,7 @@ import Link from "next/link";
 import dotenv from "dotenv";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess } from "@/app/redux/slices/authSlice";
+import { setUsers } from "@/app/redux/slices/usersSlice";
 
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
@@ -176,20 +178,24 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Hook per dispatchare azioni Redux
   const dispatch = useDispatch();
+  const { access_token, isAuthenticated, user, email } = useSelector(
+    (state: any) => state.auth
+  );
+  const [isLoading, setIsLoading] = useState(true);
 
   // Selezione dello stato Redux
   // 1. authState: contiene i dati dell'autenticazione (user, email, token, ecc.)
   // 2. allState: contiene l'intero stato dell'applicazione per debug
   const authState = useSelector((state: any) => state.auth);
-  const allState = useSelector((state: any) => state);
+  // const allState = useSelector((state: any) => state);
 
   // Debug degli stati
   // Questi log ci aiutano a capire:
   // - Se lo stato Redux è stato inizializzato correttamente
   // - Se i dati dell'utente sono presenti
   // - Se l'utente è autenticato
-  console.log("TUTTO LO STATO REDUX:", allState);
-  console.log("AUTH STATE:", authState);
+  // console.log("TUTTO LO STATO REDUX:", allState);
+  // console.log("AUTH STATE:", authState);
 
   // Creazione dell'oggetto userInfo per il componente NavUser
   // Questo oggetto viene creato in base allo stato di autenticazione:
@@ -200,20 +206,58 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     email: authState?.email || "Nessuna email",
   };
 
-  console.log("USER INFO CREATA:", userInfo);
+  // console.log("USER INFO CREATA:", userInfo);
 
   // Verifica dello stato di autenticazione
   // Questo blocco ci aiuta a capire se:
   // - L'utente è autenticato (isAuthenticated === true)
   // - I dati dell'utente sono disponibili (user ed email)
-  if (authState?.isAuthenticated) {
-    console.log("Utente autenticato, dati:", {
-      name: authState.user,
-      email: authState.email,
-    });
-  } else {
-    console.log("Utente non autenticato");
-  }
+
+  const checkLoggedUser = async () => {
+    // 1. Recuperiamo il token dal localStorage
+    const token = localStorage.getItem("access_token");
+
+    // 2. Se non c'è token, l'utente non è autenticato
+    if (!token) {
+      console.log("Nessun token trovato");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      // 3. Facciamo una chiamata API per verificare il token
+      const response = await fetch("http://localhost:5000/auth/verify", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // 4. Se la risposta è ok, il token è valido
+        const data = await response.json();
+        // 5. Aggiorniamo lo stato Redux con i dati dell'utente
+        dispatch(loginSuccess(data));
+      } else {
+        // 6. Se la risposta non è ok, il token non è valido
+        console.log("Token non valido");
+        localStorage.removeItem("access_token");
+      }
+    } catch (error) {
+      console.error("Errore nel recupero dei dati dell'Utente:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authState?.isAuthenticated) {
+      checkLoggedUser();
+    } else {
+      setIsLoading(false);
+    }
+  }, [access_token, isAuthenticated]);
 
   // Renderizzazione del componente
   // Il componente NavUser riceve i dati dell'utente attraverso la prop user

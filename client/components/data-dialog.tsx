@@ -41,7 +41,7 @@ const utenteSchema = z.object({
   cognome: z.string(),
   email: z.string().email(),
   telefono: z.string(),
-  utente_citta: z.string(),
+  utente_citta: z.string().optional(),
   dataRegistrazione: z.string(),
 });
 

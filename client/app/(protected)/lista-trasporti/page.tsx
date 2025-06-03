@@ -12,11 +12,14 @@ import {
   deleteTrasporto,
   updateTrasporto,
 } from "@/app/hooks/services/trasportiServices";
-import { Utente } from "@/app/types/utente";
 import { TrasportoInterface } from "@/app/types/trasporto";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react";
 import { DataDialog } from "@/components/data-dialog";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { XCircle, CheckCircle2 } from "lucide-react";
+import { CustomPopover } from "@/components/ui/custom-popover";
 
 interface EasyTableProps {
   row: TableData;
@@ -40,15 +43,21 @@ export default function ListaTrasporti() {
   const [selectedTrasporto, setSelectedTrasporto] = useState<
     TableData | undefined
   >();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const fetchData = async () => {
     if (!access_token) return;
     try {
       setIsLoading(true);
+      setError(null);
       const data = await fetchTrasporti(access_token);
       dispatch(setTrasporti(data));
-    } catch (error) {
-      console.error("Errore nel recupero dei trasporti:", error);
+    } catch (error: any) {
+      setError(error.message || "Errore nel recupero dei trasporti");
     } finally {
       setIsLoading(false);
     }
@@ -64,15 +73,21 @@ export default function ListaTrasporti() {
 
   const handleDelete = async (row: TableData) => {
     try {
+      setIsDeleting(true);
+      setError(null);
       const id = (row as any)._id || row.id;
       if (!id) {
         throw new Error("ID non trovato");
       }
       await deleteTrasporto(id.toString(), access_token);
-      console.log("Trasporto eliminato con successo");
+      setSuccessMessage("Trasporto eliminato con successo!");
+      setIsSuccess(true);
       fetchData();
-    } catch (error) {
-      console.error("Errore durante l'eliminazione del trasporto:", error);
+    } catch (error: any) {
+      setError(error.message || "Errore durante l'eliminazione del trasporto");
+      setIsSuccess(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -88,6 +103,8 @@ export default function ListaTrasporti() {
 
   const handleSave = async (data: TableData) => {
     try {
+      setIsSaving(true);
+      setError(null);
       if (selectedTrasporto) {
         // Modifica
         const id = (selectedTrasporto as any)._id || selectedTrasporto.id;
@@ -96,6 +113,7 @@ export default function ListaTrasporti() {
           _id: id.toString(),
         } as TrasportoInterface;
         await updateTrasporto(id.toString(), trasportoData, access_token);
+        setSuccessMessage("Trasporto modificato con successo!");
       } else {
         // Nuovo trasporto - non inviare _id
         const { _id, ...trasportoData } = data as any;
@@ -103,10 +121,16 @@ export default function ListaTrasporti() {
           trasportoData as TrasportoInterface,
           access_token
         );
+        setSuccessMessage("Trasporto creato con successo!");
       }
+      setIsSuccess(true);
       fetchData();
-    } catch (error) {
-      console.error("Errore durante il salvataggio del trasporto:", error);
+      setDialogOpen(false);
+    } catch (error: any) {
+      setError(error.message || "Errore durante il salvataggio del trasporto");
+      setIsSuccess(false);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -120,12 +144,29 @@ export default function ListaTrasporti() {
             size="sm"
             onClick={handleAdd}
             className="h-8"
+            disabled={isLoading}
           >
             <PlusIcon className="h-4 w-4 mr-2" />
-            Aggiungi Trasporto
+            {isLoading ? "Caricamento..." : "Aggiungi Trasporto"}
           </Button>
         )}
       </div>
+
+      {error && (
+        <Alert variant="destructive" className="mb-4 bg-red-50 border-red-200">
+          <XCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-600">{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {isSuccess && successMessage && (
+        <Alert className="mb-4 bg-green-50 border-green-200">
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-600">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {!isAuthenticated || isLoading ? (
         <div className="text-center p-8 text-gray-500">

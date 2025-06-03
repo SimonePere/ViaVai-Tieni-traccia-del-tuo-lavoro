@@ -54,6 +54,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { CustomPopover } from "@/components/ui/custom-popover";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { XCircle, CheckCircle2 } from "lucide-react";
 
 // Definizione degli schemi Zod per la validazione dei dati
 // Schema per i dati dei trasporti
@@ -157,13 +160,31 @@ function getColumns(
             >
               <PencilIcon className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(row.original)}
+            <CustomPopover
+              triggerIcon={<TrashIcon className="h-4 w-4" />}
+              align="end"
+              side="left"
             >
-              <TrashIcon className="h-4 w-4" />
-            </Button>
+              <div className="flex flex-col gap-4 p-2">
+                <p className="text-sm">
+                  Sei sicuro di voler eliminare questo elemento?
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" size="sm">
+                    Annulla
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      onDelete(row.original);
+                    }}
+                  >
+                    Elimina
+                  </Button>
+                </div>
+              </div>
+            </CustomPopover>
           </div>
         );
       },

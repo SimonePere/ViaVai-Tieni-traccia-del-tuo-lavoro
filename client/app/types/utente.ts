@@ -2,7 +2,7 @@
 
 // types/utente.ts
 
-export interface Utente {
+export interface UtenteInterface {
   _id?: string;
   id?: number;
   nome: string;
