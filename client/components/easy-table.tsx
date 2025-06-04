@@ -351,10 +351,16 @@ export function EasyTable({
     pageSize: 10,
   });
 
-  // Inizializzazione della tabella con le configurazioni
+  // Memoize columns
+  const columns = React.useMemo(
+    () => getColumns(type, onDelete, onEdit),
+    [type, onDelete, onEdit]
+  );
+
+  // Memoize table instance
   const table = useReactTable({
     data,
-    columns: getColumns(type, onDelete, onEdit),
+    columns,
     state: {
       sorting,
       columnVisibility,
@@ -374,6 +380,21 @@ export function EasyTable({
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // Memoize handlers
+  const handleGlobalFilterChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setGlobalFilter(event.target.value);
+    },
+    []
+  );
+
+  const handleColumnVisibilityChange = React.useCallback(
+    (column: any, value: boolean) => {
+      column.toggleVisibility(!!value);
+    },
+    []
+  );
+
   return (
     <div className="space-y-4">
       {/* Barra degli strumenti della tabella */}
@@ -383,7 +404,7 @@ export function EasyTable({
           <Input
             placeholder="Cerca..."
             value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            onChange={handleGlobalFilterChange}
             className="h-8 w-[150px] lg:w-[250px]"
           />
           {onAdd && (
@@ -411,7 +432,7 @@ export function EasyTable({
                     className="capitalize"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
+                      handleColumnVisibilityChange(column, value)
                     }
                   >
                     {column.id}
@@ -422,8 +443,8 @@ export function EasyTable({
         </DropdownMenu>
       </div>
 
-      {/* Contenitore principale della tabella Header */}
-      <div className="rounded-md border">
+      {/* Contenitore principale della tabella con transform per evitare reflow */}
+      <div className="rounded-md border transform-gpu">
         <Table>
           {/* Intestazione della tabella */}
           <TableHeader>
@@ -444,13 +465,14 @@ export function EasyTable({
               </TableRow>
             ))}
           </TableHeader>
-          {/* Corpo della tabella Body */}
-          <TableBody>
+          {/* Corpo della tabella con transform per evitare reflow */}
+          <TableBody className="transform-gpu">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="transform-gpu"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -465,7 +487,7 @@ export function EasyTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={getColumns(type, onDelete, onEdit).length}
+                  colSpan={columns.length}
                   className="h-24 text-center"
                 >
                   Nessun risultato.

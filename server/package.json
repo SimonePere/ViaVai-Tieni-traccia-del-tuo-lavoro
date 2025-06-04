@@ -4,12 +4,18 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo 'Build non necessaria per Node.js'"
   },
-  "keywords": [],
+  "keywords": [
+    "api",
+    "trasporti",
+    "backend"
+  ],
   "author": "Simone Mele <simonemele6596@gmail.com>",
   "license": "ISC",
-  "description": "",
+  "description": "Backend API per l'applicazione di gestione trasporti",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",

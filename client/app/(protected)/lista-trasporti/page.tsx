@@ -14,7 +14,7 @@ import {
 } from "@/app/hooks/services/trasportiServices";
 import { TrasportoInterface } from "@/app/types/trasporto";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react";
+import { PlusIcon, Trash2Icon, PencilIcon, Loader2 } from "lucide-react";
 import { DataDialog } from "@/components/data-dialog";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -146,8 +146,17 @@ export default function ListaTrasporti() {
             className="h-8"
             disabled={isLoading}
           >
-            <PlusIcon className="h-4 w-4 mr-2" />
-            {isLoading ? "Caricamento..." : "Aggiungi Trasporto"}
+            {isLoading ? (
+              <span className="flex items-center">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Caricamento...
+              </span>
+            ) : (
+              <>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Aggiungi Trasporto
+              </>
+            )}
           </Button>
         )}
       </div>

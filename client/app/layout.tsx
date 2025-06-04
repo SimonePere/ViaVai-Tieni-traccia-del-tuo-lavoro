@@ -1,6 +1,6 @@
 /** @format */
 /* eslint-disable @next/next/no-head-element */
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./styles/globals.css";
 import { StoreProviders } from "./providers";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -60,10 +60,13 @@ export const metadata: Metadata = {
       },
     ],
   },
-  themeColor: "#ffffff",
   other: {
     "msapplication-TileColor": "#ffffff",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

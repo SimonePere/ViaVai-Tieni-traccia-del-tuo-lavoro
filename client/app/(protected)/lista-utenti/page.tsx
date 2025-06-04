@@ -3,9 +3,10 @@
 "use client";
 
 import { EasyTable, TableData } from "@/components/easy-table";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
 import { setUsers } from "@/app/redux/slices/usersSlice";
+import debounce from "lodash/debounce";
 
 import {
   fetchUtenti,
@@ -47,87 +48,97 @@ export default function ListaUtenti() {
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const fetchData = async () => {
-    if (!access_token) return;
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchUtenti(access_token);
-      dispatch(setUsers(data));
-    } catch (error: any) {
-      setError(error.message || "Errore nel recupero degli utenti");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const debouncedFetchData = useCallback(
+    debounce(async () => {
+      if (!access_token) return;
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchUtenti(access_token);
+        dispatch(setUsers(data));
+      } catch (error: any) {
+        setError(error.message || "Errore nel recupero degli utenti");
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300),
+    [access_token, dispatch]
+  );
+
+  const handleDelete = useCallback(
+    async (row: TableData) => {
+      try {
+        setIsDeleting(true);
+        setError(null);
+        const id = (row as any)._id || row.id;
+        if (!id) {
+          throw new Error("ID non trovato");
+        }
+        await deleteUtente(id.toString(), access_token);
+        setSuccessMessage("Utente eliminato con successo!");
+        setIsSuccess(true);
+        debouncedFetchData();
+      } catch (error: any) {
+        setError(error.message || "Errore durante l'eliminazione dell'utente");
+        setIsSuccess(false);
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [access_token, debouncedFetchData]
+  );
+
+  const handleEdit = useCallback((row: TableData) => {
+    setSelectedUtente(row);
+    setDialogOpen(true);
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    setSelectedUtente(undefined);
+    setDialogOpen(true);
+  }, []);
+
+  const handleSave = useCallback(
+    async (data: TableData) => {
+      try {
+        setIsSaving(true);
+        setError(null);
+        if (selectedUtente) {
+          const id = (selectedUtente as any)._id || selectedUtente.id;
+          const utenteData = {
+            ...data,
+            _id: id.toString(),
+          } as UtenteInterface;
+          await updateUtente(id.toString(), utenteData, access_token);
+          setSuccessMessage("Utente modificato con successo!");
+        } else {
+          const { _id, ...utenteData } = data as any;
+          await createUtente(utenteData as UtenteInterface, access_token);
+          setSuccessMessage("Utente creato con successo!");
+        }
+        setIsSuccess(true);
+        debouncedFetchData();
+        setDialogOpen(false);
+      } catch (error: any) {
+        setError(error.message || "Errore durante il salvataggio dell'utente");
+        setIsSuccess(false);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [access_token, selectedUtente, debouncedFetchData]
+  );
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetchData();
+      debouncedFetchData();
     } else {
       setIsLoading(false);
     }
-  }, [access_token, isAuthenticated]);
-
-  const handleDelete = async (row: TableData) => {
-    try {
-      setIsDeleting(true);
-      setError(null);
-      const id = (row as any)._id || row.id;
-      if (!id) {
-        throw new Error("ID non trovato");
-      }
-      await deleteUtente(id.toString(), access_token);
-      setSuccessMessage("Utente eliminato con successo!");
-      setIsSuccess(true);
-      fetchData();
-    } catch (error: any) {
-      setError(error.message || "Errore durante l'eliminazione dell'utente");
-      setIsSuccess(false);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleEdit = (row: TableData) => {
-    setSelectedUtente(row);
-    setDialogOpen(true);
-  };
-
-  const handleAdd = () => {
-    setSelectedUtente(undefined);
-    setDialogOpen(true);
-  };
-
-  const handleSave = async (data: TableData) => {
-    try {
-      setIsSaving(true);
-      setError(null);
-      if (selectedUtente) {
-        // Modifica
-        const id = (selectedUtente as any)._id || selectedUtente.id;
-        const utenteData = {
-          ...data,
-          _id: id.toString(),
-        } as UtenteInterface;
-        await updateUtente(id.toString(), utenteData, access_token);
-        setSuccessMessage("Utente modificato con successo!");
-      } else {
-        // Nuovo utente - non inviare _id
-        const { _id, ...utenteData } = data as any;
-        await createUtente(utenteData as UtenteInterface, access_token);
-        setSuccessMessage("Utente creato con successo!");
-      }
-      setIsSuccess(true);
-      fetchData();
-      setDialogOpen(false);
-    } catch (error: any) {
-      setError(error.message || "Errore durante il salvataggio dell'utente");
-      setIsSuccess(false);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    return () => {
+      debouncedFetchData.cancel();
+    };
+  }, [access_token, isAuthenticated, debouncedFetchData]);
 
   return (
     <div className="p-4">
@@ -177,7 +188,7 @@ export default function ListaUtenti() {
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          fetchData={fetchData}
+          fetchData={debouncedFetchData}
           onSave={handleSave}
         />
       ) : (

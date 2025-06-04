@@ -214,41 +214,60 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // - I dati dell'utente sono disponibili (user ed email)
 
   const checkLoggedUser = async () => {
-    // 1. Recuperiamo il token dal localStorage
     const token = localStorage.getItem("access_token");
+    const maxRetries = 3;
+    let retryCount = 0;
 
-    // 2. Se non c'è token, l'utente non è autenticato
     if (!token) {
       console.log("Nessun token trovato");
       setIsLoading(false);
       return;
     }
 
-    try {
-      setIsLoading(true);
-      // 3. Facciamo una chiamata API per verificare il token
-      const response = await fetch("http://localhost:5000/auth/verify", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const verifyToken = async () => {
+      try {
+        setIsLoading(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondi di timeout
 
-      if (response.ok) {
-        // 4. Se la risposta è ok, il token è valido
-        const data = await response.json();
-        // 5. Aggiorniamo lo stato Redux con i dati dell'utente
-        dispatch(loginSuccess(data));
-      } else {
-        // 6. Se la risposta non è ok, il token non è valido
-        console.log("Token non valido");
-        localStorage.removeItem("access_token");
+        const response = await fetch(`${LOCAL_HOST}/auth/verify`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          dispatch(loginSuccess(data));
+        } else {
+          console.log("Token non valido");
+          localStorage.removeItem("access_token");
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          console.error("Richiesta timeout");
+        } else {
+          console.error("Errore nel recupero dei dati dell'Utente:", error);
+        }
+
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Tentativo ${retryCount} di ${maxRetries}`);
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * retryCount)
+          ); // Backoff esponenziale
+          return verifyToken();
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Errore nel recupero dei dati dell'Utente:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    await verifyToken();
   };
 
   useEffect(() => {

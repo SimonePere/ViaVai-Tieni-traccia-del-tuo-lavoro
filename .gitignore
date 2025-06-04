@@ -5,6 +5,7 @@
 .env.development
 .env.test
 .env.production
+DEPLOY.md
 
 # Dependencies
 node_modules/

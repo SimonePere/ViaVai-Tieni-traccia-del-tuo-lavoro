@@ -84,17 +84,17 @@ export function LoginForm2({
 
   return (
     <form
-      className={cn("flex flex-col gap-6", className)}
+      className={cn("flex flex-col gap-2", className)}
       {...props}
       onSubmit={handleSubmit}
     >
-      <div className="flex flex-col items-center gap-2 text-center">
+      <div className="flex flex-col items-center gap-1 text-center">
         <h2 className="text-2xl font-bold">Accedi al tuo account</h2>
         <p className="text-balance text-sm text-muted-foreground">
-          Inserisci la tua email qui sotto per accedere al tuo account
+          Inserisci email e password per accedere al tuo account
         </p>
       </div>
-      <div className="grid gap-6">
+      <div className="grid gap-4">
         {error && (
           <Alert variant="destructive" className="bg-red-50 border-red-200">
             <XCircle className="h-4 w-4 text-red-600" />
