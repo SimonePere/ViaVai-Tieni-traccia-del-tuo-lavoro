@@ -179,12 +179,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const dispatch = useDispatch();
   const authState = useSelector((state: RootState) => state.auth);
 
-  // Creazione dell'oggetto userInfo per il componente NavUser
-  const userInfo = {
-    name: authState?.user?.nome || "Utente non loggato",
-    email: authState?.user?.email || "Nessuna email",
-  };
-
   const checkLoggedUser = useCallback(async () => {
     const token = localStorage.getItem("access_token");
     const maxRetries = 3;
@@ -267,7 +261,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userInfo} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );
