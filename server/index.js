@@ -14,7 +14,7 @@ dotenv.config();
 
 const app = express();
 
-// Configurazione CORS all'inizio
+// Configurazione CORS PER DEPLOY
 app.use(
   cors({
     origin:

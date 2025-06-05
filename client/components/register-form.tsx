@@ -19,6 +19,8 @@ import {
 import Link from "next/link";
 import dotenv from "dotenv";
 
+import { RootState } from "@/app/types/redux";
+
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
 
@@ -27,7 +29,9 @@ export function RegisterForm2({
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
   const dispatch = useDispatch();
-  const { isLoading, error } = useSelector((state: any) => state.register);
+  const { isLoading, error } = useSelector(
+    (state: RootState) => state.register
+  );
   const [isSuccess, setIsSuccess] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -130,14 +134,14 @@ export function RegisterForm2({
         } else {
           throw new Error("Registrazione fallita");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Register error:", error);
-        if (!error.message.includes("Email già registrata")) {
-          dispatch(registerFailure(error.message));
-        }
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Registrazione fallita (RegisterFailure)";
+        dispatch(registerFailure(errorMessage));
       }
-    } else {
-      console.log("Form non valido, errori presenti."); // Log se ci sono errori nel modulo
     }
   };
   return (

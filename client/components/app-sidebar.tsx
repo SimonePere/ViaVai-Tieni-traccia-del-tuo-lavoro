@@ -3,7 +3,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useCallback } from "react";
 import {
   ArrowUpCircleIcon,
   BarChartIcon,
@@ -41,7 +41,7 @@ import Link from "next/link";
 import dotenv from "dotenv";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess } from "@/app/redux/slices/authSlice";
-import { setUsers } from "@/app/redux/slices/usersSlice";
+import { RootState } from "@/app/types/redux";
 
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
@@ -176,57 +176,27 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // Hook per dispatchare azioni Redux
   const dispatch = useDispatch();
-  const { access_token, isAuthenticated, user, email } = useSelector(
-    (state: any) => state.auth
-  );
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Selezione dello stato Redux
-  // 1. authState: contiene i dati dell'autenticazione (user, email, token, ecc.)
-  // 2. allState: contiene l'intero stato dell'applicazione per debug
-  const authState = useSelector((state: any) => state.auth);
-  // const allState = useSelector((state: any) => state);
-
-  // Debug degli stati
-  // Questi log ci aiutano a capire:
-  // - Se lo stato Redux è stato inizializzato correttamente
-  // - Se i dati dell'utente sono presenti
-  // - Se l'utente è autenticato
-  // console.log("TUTTO LO STATO REDUX:", allState);
-  // console.log("AUTH STATE:", authState);
+  const authState = useSelector((state: RootState) => state.auth);
 
   // Creazione dell'oggetto userInfo per il componente NavUser
-  // Questo oggetto viene creato in base allo stato di autenticazione:
-  // - Se l'utente è autenticato: usa i dati dallo stato Redux
-  // - Se l'utente non è autenticato: usa valori di default
   const userInfo = {
-    name: authState?.user || "Utente non loggato",
-    email: authState?.email || "Nessuna email",
+    name: authState?.user?.nome || "Utente non loggato",
+    email: authState?.user?.email || "Nessuna email",
   };
 
-  // console.log("USER INFO CREATA:", userInfo);
-
-  // Verifica dello stato di autenticazione
-  // Questo blocco ci aiuta a capire se:
-  // - L'utente è autenticato (isAuthenticated === true)
-  // - I dati dell'utente sono disponibili (user ed email)
-
-  const checkLoggedUser = async () => {
+  const checkLoggedUser = useCallback(async () => {
     const token = localStorage.getItem("access_token");
     const maxRetries = 3;
     let retryCount = 0;
 
     if (!token) {
       console.log("Nessun token trovato");
-      setIsLoading(false);
       return;
     }
 
     const verifyToken = async () => {
       try {
-        setIsLoading(true);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondi di timeout
 
@@ -262,27 +232,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ); // Backoff esponenziale
           return verifyToken();
         }
-      } finally {
-        setIsLoading(false);
       }
     };
 
     await verifyToken();
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     if (authState?.isAuthenticated) {
       checkLoggedUser();
-    } else {
-      setIsLoading(false);
     }
-  }, [access_token, isAuthenticated]);
+  }, [authState?.isAuthenticated, checkLoggedUser]);
 
-  // Renderizzazione del componente
-  // Il componente NavUser riceve i dati dell'utente attraverso la prop user
-  // Questi dati possono essere:
-  // - I dati reali dell'utente se autenticato
-  // - I valori di default se non autenticato
   return (
     <Sidebar collapsible="offcanvas" {...props} className="">
       <SidebarHeader>
@@ -306,7 +267,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        {/* Passaggio dei dati dell'utente al componente NavUser */}
         <NavUser user={userInfo} />
       </SidebarFooter>
     </Sidebar>

@@ -3,8 +3,8 @@
 "use client";
 
 import { EasyTable, TableData } from "@/components/easy-table";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
+import React, { useEffect, useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { setTrasporti } from "@/app/redux/slices/trasportiSlice";
 import {
   fetchTrasporti,
@@ -14,54 +14,44 @@ import {
 } from "@/app/hooks/services/trasportiServices";
 import { TrasportoInterface } from "@/app/types/trasporto";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, PencilIcon, Loader2 } from "lucide-react";
+import { PlusIcon, Loader2 } from "lucide-react";
 import { DataDialog } from "@/components/data-dialog";
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { XCircle, CheckCircle2 } from "lucide-react";
-import { CustomPopover } from "@/components/ui/custom-popover";
-
-interface EasyTableProps {
-  row: TableData;
-  type: string;
-  showActions: boolean;
-  onAdd: () => void;
-  onEdit: (row: TableData) => void;
-  onDelete: (row: TableData) => void;
-  fetchData: () => Promise<void>;
-  onSave: (row: TableData) => void;
-}
+import { RootState, TrasportoTableData } from "@/app/types/redux";
 
 export default function ListaTrasporti() {
   const dispatch = useDispatch();
   const { access_token, isAuthenticated } = useSelector(
-    (state: any) => state.auth
+    (state: RootState) => state.auth
   );
-  const { trasporti } = useSelector((state: any) => state.trasporti);
+  const { trasporti } = useSelector((state: RootState) => state.trasporti);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTrasporto, setSelectedTrasporto] = useState<
-    TableData | undefined
+    TrasportoTableData | undefined
   >();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!access_token) return;
     try {
       setIsLoading(true);
       setError(null);
       const data = await fetchTrasporti(access_token);
       dispatch(setTrasporti(data));
-    } catch (error: any) {
-      setError(error.message || "Errore nel recupero dei trasporti");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Errore nel recupero dei trasporti";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [access_token, dispatch]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -69,13 +59,13 @@ export default function ListaTrasporti() {
     } else {
       setIsLoading(false);
     }
-  }, [access_token, isAuthenticated]);
+  }, [isAuthenticated, fetchData]);
 
   const handleDelete = async (row: TableData) => {
+    if (!access_token) return;
     try {
-      setIsDeleting(true);
       setError(null);
-      const id = (row as any)._id || row.id;
+      const id = (row as TrasportoTableData)._id || row.id;
       if (!id) {
         throw new Error("ID non trovato");
       }
@@ -83,16 +73,18 @@ export default function ListaTrasporti() {
       setSuccessMessage("Trasporto eliminato con successo!");
       setIsSuccess(true);
       fetchData();
-    } catch (error: any) {
-      setError(error.message || "Errore durante l'eliminazione del trasporto");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Errore durante l'eliminazione del trasporto";
+      setError(errorMessage);
       setIsSuccess(false);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
   const handleEdit = (row: TableData) => {
-    setSelectedTrasporto(row);
+    setSelectedTrasporto(row as TrasportoTableData);
     setDialogOpen(true);
   };
 
@@ -102,35 +94,33 @@ export default function ListaTrasporti() {
   };
 
   const handleSave = async (data: TableData) => {
+    if (!access_token) return;
     try {
-      setIsSaving(true);
       setError(null);
       if (selectedTrasporto) {
-        // Modifica
-        const id = (selectedTrasporto as any)._id || selectedTrasporto.id;
+        const id =
+          (selectedTrasporto as TrasportoTableData)._id || selectedTrasporto.id;
         const trasportoData = {
           ...data,
           _id: id.toString(),
-        } as TrasportoInterface;
+        } as unknown as TrasportoInterface;
         await updateTrasporto(id.toString(), trasportoData, access_token);
         setSuccessMessage("Trasporto modificato con successo!");
       } else {
-        // Nuovo trasporto - non inviare _id
-        const { _id, ...trasportoData } = data as any;
-        await createTrasporto(
-          trasportoData as TrasportoInterface,
-          access_token
-        );
+        const trasportoData = { ...data } as unknown as TrasportoInterface;
+        await createTrasporto(trasportoData, access_token);
         setSuccessMessage("Trasporto creato con successo!");
       }
       setIsSuccess(true);
       fetchData();
       setDialogOpen(false);
-    } catch (error: any) {
-      setError(error.message || "Errore durante il salvataggio del trasporto");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Errore durante il salvataggio del trasporto";
+      setError(errorMessage);
       setIsSuccess(false);
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -185,7 +175,7 @@ export default function ListaTrasporti() {
         </div>
       ) : trasporti && trasporti.length > 0 ? (
         <EasyTable
-          data={trasporti}
+          data={trasporti as unknown as TableData[]}
           type="trasporto"
           showActions={true}
           onAdd={handleAdd}

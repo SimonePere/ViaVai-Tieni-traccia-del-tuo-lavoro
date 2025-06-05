@@ -39,7 +39,6 @@ import {
 } from "@tanstack/react-table";
 import {
   CheckCircle2Icon,
-  CheckCircleIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,

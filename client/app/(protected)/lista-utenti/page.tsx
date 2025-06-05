@@ -3,8 +3,8 @@
 "use client";
 
 import { EasyTable, TableData } from "@/components/easy-table";
-import React, { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux"; // Per accedere allo stato Redux
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { setUsers } from "@/app/redux/slices/usersSlice";
 import debounce from "lodash/debounce";
 
@@ -21,56 +21,56 @@ import { PlusIcon } from "lucide-react";
 import { DataDialog } from "@/components/data-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { XCircle, CheckCircle2 } from "lucide-react";
-
-interface EasyTableProps {
-  row: TableData;
-  type: string;
-  showActions: boolean;
-  onAdd: () => void;
-  onEdit: (row: TableData) => void;
-  onDelete: (row: TableData) => void;
-  fetchData: () => Promise<void>;
-  onSave: (row: TableData) => void;
-}
+import { RootState, UtenteTableData } from "@/app/types/redux";
 
 export default function ListaUtenti() {
   const dispatch = useDispatch();
   const { access_token, isAuthenticated } = useSelector(
-    (state: any) => state.auth
+    (state: RootState) => state.auth
   );
-  const { users } = useSelector((state: any) => state.users);
+  const { users } = useSelector((state: RootState) => state.users);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedUtente, setSelectedUtente] = useState<TableData | undefined>();
+  const [selectedUtente, setSelectedUtente] = useState<
+    UtenteTableData | undefined
+  >();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const debouncedFetchData = useCallback(
-    debounce(async () => {
-      if (!access_token) return;
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await fetchUtenti(access_token);
-        dispatch(setUsers(data));
-      } catch (error: any) {
-        setError(error.message || "Errore nel recupero degli utenti");
-      } finally {
-        setIsLoading(false);
-      }
-    }, 300),
-    [access_token, dispatch]
+  const fetchData = useCallback(async () => {
+    if (!access_token) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchUtenti(access_token);
+      dispatch(setUsers(data));
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Errore nel recupero degli utenti";
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [access_token, dispatch]);
+
+  const debouncedFetchData = useMemo(
+    () => debounce(fetchData, 300),
+    [fetchData]
   );
 
   const handleDelete = useCallback(
     async (row: TableData) => {
+      if (!access_token) {
+        setError("Token di accesso non disponibile");
+        return;
+      }
       try {
-        setIsDeleting(true);
         setError(null);
-        const id = (row as any)._id || row.id;
+        const id = (row as UtenteTableData)._id || row.id;
         if (!id) {
           throw new Error("ID non trovato");
         }
@@ -78,18 +78,20 @@ export default function ListaUtenti() {
         setSuccessMessage("Utente eliminato con successo!");
         setIsSuccess(true);
         debouncedFetchData();
-      } catch (error: any) {
-        setError(error.message || "Errore durante l'eliminazione dell'utente");
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Errore durante l'eliminazione dell'utente";
+        setError(errorMessage);
         setIsSuccess(false);
-      } finally {
-        setIsDeleting(false);
       }
     },
     [access_token, debouncedFetchData]
   );
 
   const handleEdit = useCallback((row: TableData) => {
-    setSelectedUtente(row);
+    setSelectedUtente(row as UtenteTableData);
     setDialogOpen(true);
   }, []);
 
@@ -100,11 +102,16 @@ export default function ListaUtenti() {
 
   const handleSave = useCallback(
     async (data: TableData) => {
+      if (!access_token) {
+        setError("Token di accesso non disponibile");
+        return;
+      }
       try {
         setIsSaving(true);
         setError(null);
         if (selectedUtente) {
-          const id = (selectedUtente as any)._id || selectedUtente.id;
+          const id =
+            (selectedUtente as UtenteTableData)._id || selectedUtente.id;
           const utenteData = {
             ...data,
             _id: id.toString(),
@@ -112,15 +119,19 @@ export default function ListaUtenti() {
           await updateUtente(id.toString(), utenteData, access_token);
           setSuccessMessage("Utente modificato con successo!");
         } else {
-          const { _id, ...utenteData } = data as any;
-          await createUtente(utenteData as UtenteInterface, access_token);
+          const utenteData = { ...data } as UtenteInterface;
+          await createUtente(utenteData, access_token);
           setSuccessMessage("Utente creato con successo!");
         }
         setIsSuccess(true);
         debouncedFetchData();
         setDialogOpen(false);
-      } catch (error: any) {
-        setError(error.message || "Errore durante il salvataggio dell'utente");
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Errore durante il salvataggio dell'utente";
+        setError(errorMessage);
         setIsSuccess(false);
       } finally {
         setIsSaving(false);
@@ -138,7 +149,7 @@ export default function ListaUtenti() {
     return () => {
       debouncedFetchData.cancel();
     };
-  }, [access_token, isAuthenticated, debouncedFetchData]);
+  }, [isAuthenticated, debouncedFetchData]);
 
   return (
     <div className="p-4">
@@ -182,7 +193,7 @@ export default function ListaUtenti() {
         </div>
       ) : users && users.length > 0 ? (
         <EasyTable
-          data={users}
+          data={users as unknown as TableData[]}
           type="utente"
           showActions={true}
           onAdd={handleAdd}

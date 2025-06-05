@@ -5,7 +5,6 @@
 import * as React from "react";
 import {
   ColumnDef,
-  ColumnFiltersState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -15,36 +14,17 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-  ColumnsIcon,
-  PencilIcon,
-  PlusIcon,
-  TrashIcon,
-} from "lucide-react";
-import { z } from "zod";
+import { ChevronDownIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Table,
   TableBody,
@@ -55,43 +35,17 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { CustomPopover } from "@/components/ui/custom-popover";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { XCircle, CheckCircle2 } from "lucide-react";
-
-// Definizione degli schemi Zod per la validazione dei dati
-// Schema per i dati dei trasporti
-const trasportoSchema = z.object({
-  id: z.number(), // ID univoco del trasporto
-  tipo_lavoro: z.string(), // Tipo di lavoro (es. Trasloco, Installazione)
-  descrizione_lavoro: z.string(), // Descrizione dettagliata del lavoro
-  destinazione: z.string(), // Indirizzo di destinazione
-  tipo_giornata: z.string(), // Tipo di giornata (es. Giornata, Trasferta)
-  ore_lavoro: z.number(), // Numero di ore di lavoro
-  importo: z.number(), // Importo in euro
-});
-
-// Schema per i dati degli utenti
-const utenteSchema = z.object({
-  id: z.number(), // ID univoco dell'utente
-  nome: z.string(), // Nome dell'utente
-  cognome: z.string(), // Cognome dell'utente
-  email: z.string(), // Email dell'utente
-  telefono: z.string(), // Numero di telefono
-  utente_citta: z.string(), // Città dell'utente
-  dataRegistrazione: z.string(), // Data di registrazione
-});
+import { TrasportoTableData, UtenteTableData } from "@/app/types/redux";
 
 // Tipo unione che può essere sia un trasporto che un utente
-export type TableData =
-  | z.infer<typeof trasportoSchema>
-  | z.infer<typeof utenteSchema>;
+export type TableData = TrasportoTableData | UtenteTableData;
 
 /**
  * Type guard per verificare se un dato è un trasporto
  * @param data - Il dato da verificare
  * @returns true se il dato è un trasporto, false altrimenti
  */
-function isTrasporto(data: TableData): data is z.infer<typeof trasportoSchema> {
+function isTrasporto(data: TableData): data is TrasportoTableData {
   return "tipo_lavoro" in data;
 }
 
@@ -100,7 +54,7 @@ function isTrasporto(data: TableData): data is z.infer<typeof trasportoSchema> {
  * @param data - Il dato da verificare
  * @returns true se il dato è un utente, false altrimenti
  */
-function isUtente(data: TableData): data is z.infer<typeof utenteSchema> {
+function isUtente(data: TableData): data is UtenteTableData {
   return "nome" in data;
 }
 
@@ -329,12 +283,9 @@ interface EasyTableProps {
 export function EasyTable({
   data,
   type,
-  fetchData,
   onAdd,
   onEdit,
-  onSave,
   onDelete,
-  showActions = true,
 }: EasyTableProps) {
   // Stati per gestire la selezione delle righe
   const [rowSelection, setRowSelection] = React.useState({});
@@ -389,7 +340,10 @@ export function EasyTable({
   );
 
   const handleColumnVisibilityChange = React.useCallback(
-    (column: any, value: boolean) => {
+    (
+      column: { toggleVisibility: (value: boolean) => void },
+      value: boolean
+    ) => {
       column.toggleVisibility(!!value);
     },
     []

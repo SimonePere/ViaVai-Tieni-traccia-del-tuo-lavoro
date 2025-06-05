@@ -8,8 +8,13 @@ dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
 
 // Funzione per verificare se un dato è di tipo TrasportoInterface
-export const isTrasporto = (data: any): data is TrasportoInterface => {
-  return (data as TrasportoInterface)._id !== undefined; // Controlla se _id è presente
+export const isTrasporto = (data: unknown): data is TrasportoInterface => {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "_id" in data &&
+    typeof (data as TrasportoInterface)._id !== "undefined"
+  );
 };
 
 // Funzione per recuperare i trasporti

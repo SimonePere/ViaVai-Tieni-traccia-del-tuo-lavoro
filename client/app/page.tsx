@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -16,11 +17,11 @@ export default function Home() {
       <section className="flex flex-col md:flex-row items-center justify-between gap-8 w-full">
         <div className="flex-1 space-y-4">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            ViaVai — L’app per chi lavora in movimento 🚚
+            ViaVai — L&apos;app per chi lavora in movimento 🚚
           </h1>
           <p className="text-muted-foreground text-lg">
             Traccia in modo semplice consegne, installazioni e incassi. Tutto in
-            un’unica app pensata per lavoratori sul campo.
+            un&apos;unica app pensata per lavoratori sul campo.
           </p>
           <div className="flex gap-4 mt-4">
             <Button asChild>
@@ -32,10 +33,12 @@ export default function Home() {
           </div>
         </div>
 
-        <img
+        <Image
           src="/images/backgrounds/undraw_data-reports_l2u3.svg"
           alt="Hero Illustration"
           className="w-full max-w-md"
+          width={500}
+          height={500}
         />
       </section>
 
@@ -46,9 +49,9 @@ export default function Home() {
           Benvenuto su ViaVai!
         </AlertTitle>
         <AlertDescription>
-          L'app pensata per chi lavora in movimento. Tieni traccia di consegne,
-          installazioni e incassi in pochi clic. Accedi o registrati per
-          iniziare subito!
+          L&apos;app pensata per chi lavora in movimento. Tieni traccia di
+          consegne, installazioni e incassi in pochi clic. Accedi o registrati
+          per iniziare subito!
         </AlertDescription>
       </Alert>
 
@@ -57,7 +60,7 @@ export default function Home() {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger className="w-full" value="overview">
-              🚀 Cos'è ViaVai
+              🚀 Cos&apos;è ViaVai
             </TabsTrigger>
             <TabsTrigger className="w-full" value="features">
               🛠 Funzionalità
@@ -144,8 +147,8 @@ export default function Home() {
               <CardTitle>Mario R., tecnico installatore</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">
-              “Con ViaVai finalmente riesco a segnarmi tutto in pochi secondi. È
-              diventato il mio assistente personale!”
+              &ldquo;Con ViaVai finalmente riesco a segnarmi tutto in pochi
+              secondi. È diventato il mio assistente personale!&rdquo;
             </CardContent>
           </Card>
 
@@ -154,8 +157,8 @@ export default function Home() {
               <CardTitle>Lucia P., corriere freelance</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">
-              “Prima perdevo tempo con fogli sparsi. Ora ho tutto sotto
-              controllo: lavoro, soldi, orari. Fantastico!”
+              &ldquo;Prima perdevo tempo con fogli sparsi. Ora ho tutto sotto
+              controllo: lavoro, soldi, orari. Fantastico!&rdquo;
             </CardContent>
           </Card>
         </div>

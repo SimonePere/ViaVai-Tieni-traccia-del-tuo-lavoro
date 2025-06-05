@@ -18,6 +18,8 @@ import {
 import Link from "next/link";
 import dotenv from "dotenv";
 
+import { RootState } from "@/app/types/redux";
+
 dotenv.config();
 const LOCAL_HOST = process.env.NEXT_PUBLIC_LOCAL_HOST;
 
@@ -26,7 +28,7 @@ export function LoginForm2({
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
   const dispatch = useDispatch();
-  const { isLoading, error } = useSelector((state: any) => state.auth);
+  const { isLoading, error } = useSelector((state: RootState) => state.auth);
   const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -69,16 +71,16 @@ export function LoginForm2({
 
       if (data.status === "ok") {
         console.log("Dati (login-form) completi ricevuti dal server:", data);
-        // console.log("Email utente:", data.email_utente);
-        // console.log("Token: ", data.access_token);
         dispatch(loginSuccess(data));
         setIsSuccess(true);
       } else {
         throw new Error("Login fallito");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
-      dispatch(loginFailure("Email o password non valide"));
+      const errorMessage =
+        error instanceof Error ? error.message : "Email o password non valide";
+      dispatch(loginFailure(errorMessage));
     }
   };
 
